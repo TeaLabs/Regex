@@ -322,6 +322,36 @@ class Regex
 
 
 	/**
+	 * Wrap regular expression pattern(s) with dilimiters and add provided modifiers.
+	 *
+	 * @param  mixed              $regex
+	 * @param  string|null        $delimiter
+	 * @param  string|null|false  $modifiers
+	 * @param  bool               $safe
+	 * @return string|array
+	 */
+	public static function wrap($regex, $delimiter = null, $modifiers = null, $safe = false)
+	{
+		if(!isset($regex))
+			return $regex;
+
+		if($safe)
+			return static::safeWrap($regex, $delimiter, $modifiers);
+
+		$delimiter = $delimiter ?: static::delimiter();
+		$modifiers = $modifiers ?: '';
+
+		if(static::canCastValueToStr($regex) || !is_iterable($regex))
+			return $delimiter.$regex.$delimiter.$modifiers;
+
+		$wrapped = [];
+		foreach ($regex as $key => $value)
+			$wrapped[$key] = $delimiter.$value.$delimiter.$modifiers;
+
+		return $wrapped;
+	}
+
+	/**
 	 * Safely wrap the given regex pattern(s) with the a delimiter and add modifiers
 	 * if none is set.
 	 *
@@ -344,14 +374,15 @@ class Regex
 	 * @param  bool|array   $bracketStyle  Whether to check for bracket delimiters. Defaults to false
 	 * @return string|array
 	 */
-	public static function wrap($regex, $delimiter = null, $modifiers = null, $bracketStyle = false)
+	public static function safeWrap($regex, $delimiter = null, $modifiers = null, $bracketStyle = false)
 	{
-		if(is_array($regex)){
+		if(!isset($regex))
+			return $regex;
+
+		if(!static::canCastValueToStr($regex) && is_iterable($regex)){
 			$wrapped = [];
-
-			foreach ($regex as $r)
-				$wrapped[] = static::wrap($r, $delimiter, $modifiers, $bracketStyle);
-
+			foreach ($regex as $key => $value)
+				$wrapped[$key] = static::safeWrap($value, $delimiter, $modifiers, $bracketStyle);
 			return $wrapped;
 		}
 
@@ -370,10 +401,9 @@ class Regex
 		if(strlen($delimiter) > 1)
 			list($start, $end) = str_split($delimiter);
 		else
-			$start = $end = is_null($delimiter) ? static::DEFAULT_DELIMITER : $delimiter;
+			$start = $end = is_null($delimiter) ? static::delimiter() : $delimiter;
 
-		if(is_null($modifiers)) $modifiers = 'u';
-
+		if(!isset($modifiers)) $modifiers = 'u';
 
 		// $regex = str_replace(['\\'.$start, "\\".$end], [$start, $end], $regex);
 		// $regex = str_replace([$start, $end], ['\\'.$start, "\\".$end], $regex);
