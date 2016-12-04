@@ -89,6 +89,22 @@ class Regex
 	}
 
 	/**
+	 * Determine if the given string matches the given regex pattern.
+	 *
+	 * @uses preg_match()
+	 *
+	 * @param  string $pattern
+	 * @param  string $subject
+	 * @param  int $flags
+	 * @param  int $offset
+	 * @return bool
+	*/
+	public static function is($pattern, $subject, $flags =0, $offset = 0)
+	{
+		return (bool) preg_match(static::addModifiers($pattern), $subject, null, $flags, $offset);
+	}
+
+	/**
 	 * Return the last entry in input that match the pattern or null if none.
 	 *
 	 * @uses preg_grep()
@@ -111,8 +127,8 @@ class Regex
 	 *
 	 * @uses preg_match()
 	 *
-	 * @param  mixed $pattern
-	 * @param  mixed $subject
+	 * @param  string $pattern
+	 * @param  string $subject
 	 * @param  int $flags
 	 * @param  int $offset
 	 * @return array|null
@@ -123,23 +139,6 @@ class Regex
 		if(preg_match(static::addModifiers($pattern), $subject, $matched, $flags, $offset) !== false)
 			return $matched;
 		return null;
-	}
-
-	/**
-	 * Determine if the given subject(s) matches the given regular expression
-	 * pattern(s).
-	 *
-	 * @uses preg_match()
-	 *
-	 * @param  mixed $pattern
-	 * @param  mixed $subject
-	 * @param  int $flags
-	 * @param  int $offset
-	 * @return bool
-	*/
-	public static function matches($pattern, $subject, $flags =0, $offset = 0)
-	{
-		return (bool) preg_match(static::addModifiers($pattern), $subject, null, $flags, $offset);
 	}
 
 	/**
@@ -254,8 +253,8 @@ class Regex
 	 *
 	 * @uses preg_match_all()
 	 *
-	 * @param  mixed $pattern
-	 * @param  mixed $subject
+	 * @param  string $pattern
+	 * @param  string $subject
 	 * @param  int $flags
 	 * @param  int $offset
 	 * @return array|null
