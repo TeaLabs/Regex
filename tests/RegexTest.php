@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 class RegexTest extends TestCase
 {
 
-
 	public function delimiterProvider()
 	{
 		return [
@@ -99,39 +98,65 @@ class RegexTest extends TestCase
 		$this->assertEquals($origDelimiter, Regex::delimiter());
 	}
 
-	public function wrapProvider()
+	public function safeWrapProvider()
 	{
 		$re = '([a-zA-Z_][a-zA-Z0-9_-]*|)';
 		$reb = "\\{$re}\\";
+		$dlm = Regex::delimiter();
 		return [
-			[ "/{$re}/u", "{$re}"],
+			[ "{$dlm}{$re}{$dlm}", "{$re}"],
+			[ "/{$re}/", "{$re}", '/'],
+			[ "/{$re}/", "/{$re}/"],
 			[ "+{$re}+", "+{$re}+"],
 			[ "/{$re}/im", "/{$re}/im"],
-			[ "#{$re}#im", "{$re}", '#', 'im'],
-			[ "#{$re}#im", "#{$re}#im", '#', 'im'],
+			[ "#{$re}#", "{$re}", '#'],
+			[ "#{$re}#im", "#{$re}#im", '#'],
 			[ "~{$re}~iADJ", "~{$re}~iADJ"],
 			[ "+{$re}+iADJ", "+{$re}+iADJ"],
 			[ "%{$re}%iADJ", "%{$re}%iADJ"],
-			[ "[{$re}]iADJ", "[{$re}]iADJ", null, null,true],
-			[ "({$re})iADJ", "({$re})iADJ", null, null,true],
-			[ "<{$re}>iADJ", "<{$re}>iADJ", null, null,true],
-			[ "{{$re}}iADJ", "{{$re}}iADJ", null, null,true],
-			[ "{{$reb}}u", "{$reb}", '{}', null,true],
-			[ "{{$re}}u", "{$re}", '{}', null, ['<{[','>}]']],
-			[ "<{$reb}>i", "$reb", '<>', 'i', true],
-			[ "<{$re}>i", "$re", '<>', 'i', ['<{[','>}]']],
+			[ "[{$re}]iADJ", "[{$re}]iADJ", null, true],
+			[ "({$re})iADJ", "({$re})iADJ", null, true],
+			[ "<{$re}>iADJ", "<{$re}>iADJ", null, true],
+			[ "{{$re}}iADJ", "{{$re}}iADJ", null, true],
+			[ "{{$reb}}", "{$reb}", '{}', true],
+			[ "{{$re}}", "{$re}", '{}', ['<{[','>}]']],
+			[ "<{$reb}>", "$reb", '<>', true],
+			[ "<{$re}>", "$re", '<>', ['<{[','>}]']],
+		];
+	}
+
+	/**
+	 * @dataProvider safeWrapProvider()
+	 */
+	public function testSafeWrap($expected, $regex, $delimiter = null, $bracketStyle = false)
+	{
+		// for ($i=0; $i < $revs; $i++) {
+		$actual = Regex::safeWrap($regex, $delimiter, $bracketStyle);
+		// }
+		$this->assertEquals($expected, $actual);
+	}
+
+	public function wrapProvider()
+	{
+		$dlmt = Regex::delimiter();
+		return [
+			[ $dlmt.'(.*)'.$dlmt, '(.*)'],
+			[ $dlmt.'(.*)'.$dlmt, '(.*)', ''],
+			[ '/(.*)/', '(.*)', '/'],
+			[ '~(.*)~', '(.*)', '~'],
+			[
+				[$dlmt.'(1*)'.$dlmt, $dlmt.'(2*)'.$dlmt, $dlmt.'(3*)'.$dlmt],
+				['(1*)', '(2*)', '(3*)']
+			],
 		];
 	}
 
 	/**
 	 * @dataProvider wrapProvider()
 	 */
-	public function _testWrap($expected, $regex, $delimiter = null, $modifiers = null, $bracketStyle = false)
+	public function testWarp($expected, $regex, $delimiter = null)
 	{
-		for ($i=0; $i < 1; $i++) {
-			$actual = Regex::wrap($regex, $delimiter, $modifiers, $bracketStyle);
-		}
-
+		$actual = Regex::wrap($regex, $delimiter);
 		$this->assertEquals($expected, $actual);
 	}
 

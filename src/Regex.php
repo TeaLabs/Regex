@@ -323,30 +323,28 @@ class Regex
 
 	/**
 	 * Wrap regular expression pattern(s) with dilimiters and add provided modifiers.
+	 * If not sure whether the regex is already wrapped or not, use Regex::safeWrap()
+	 * which is slower but ensures that the regex is only wrapped once.
+	 *
+	 * @see Regex::safWrap()
 	 *
 	 * @param  mixed              $regex
 	 * @param  string|null        $delimiter
-	 * @param  string|null|false  $modifiers
-	 * @param  bool               $safe
 	 * @return string|array
 	 */
-	public static function wrap($regex, $delimiter = null, $modifiers = null, $safe = false)
+	public static function wrap($regex, $delimiter=null)
 	{
 		if(!isset($regex))
 			return $regex;
 
-		if($safe)
-			return static::safeWrap($regex, $delimiter, $modifiers);
-
 		$delimiter = $delimiter ?: static::delimiter();
-		$modifiers = $modifiers ?: '';
 
 		if(static::canCastValueToStr($regex) || !is_iterable($regex))
-			return $delimiter.$regex.$delimiter.$modifiers;
+			return $delimiter.$regex.$delimiter;
 
 		$wrapped = [];
 		foreach ($regex as $key => $value)
-			$wrapped[$key] = $delimiter.$value.$delimiter.$modifiers;
+			$wrapped[$key] = $delimiter.$value.$delimiter;
 
 		return $wrapped;
 	}
@@ -365,29 +363,37 @@ class Regex
 	 * as the pattern might contain non-quoted brackets.
 	 * To be safe, you can provide the bracket delimiter(s) that should be checked
 	 * as an array. This will avoid checking through all possible bracket style
-	 * delimiters. Eg: if $bracketStyle = ['{<', '}>'], will only check for '{}' and
+	 * delimiters. Eg: if $bracSketStyle = ['{<', '}>'], will only check for '{}' and
 	 * '<>' delimiters.
 	 *
-	 * @param  string|array $regex         The regex pattern(s)
-	 * @param  string       $delimiter     The delimiter. Defaults to '/'
-	 * @param  string       $modifiers     The modifiers. Defaults to 'u'
-	 * @param  bool|array   $bracketStyle  Whether to check for bracket delimiters. Defaults to false
+	 * @param  string|array $regex
+	 * @param  string       $delimiter
+	 * @param  bool|array   $bracketStyle
 	 * @return string|array
 	 */
-	public static function safeWrap($regex, $delimiter = null, $modifiers = null, $bracketStyle = false)
+	public static function safeWrap($regex, $delimiter = null, $bracketStyle = false)
 	{
-		if(!isset($regex))
+		if(!isset($regex) || $regex === '')
 			return $regex;
 
 		if(!static::canCastValueToStr($regex) && is_iterable($regex)){
 			$wrapped = [];
 			foreach ($regex as $key => $value)
-				$wrapped[$key] = static::safeWrap($value, $delimiter, $modifiers, $bracketStyle);
+				$wrapped[$key] = static::safeWrap($value, $delimiter, $bracketStyle);
 			return $wrapped;
 		}
 
 		$regex_0 = mb_substr($regex, 0, 1);
-		if(!$regex || strpos('/#~+%', $regex_0) !== false)
+
+		if($regex_0 === '~')
+			return $regex;
+		if($regex_0 === '/')
+			return $regex;
+		if($regex_0 === '#')
+			return $regex;
+		if($regex_0 === '%')
+			return $regex;
+		if($regex_0 === '+')
 			return $regex;
 
 		if($bracketStyle){
@@ -398,17 +404,15 @@ class Regex
 					return $regex;
 		}
 
-		if(strlen($delimiter) > 1)
+
+		if($bracketStyle && strlen($delimiter) > 1){
 			list($start, $end) = str_split($delimiter);
-		else
-			$start = $end = is_null($delimiter) ? static::delimiter() : $delimiter;
-
-		if(!isset($modifiers)) $modifiers = 'u';
-
-		// $regex = str_replace(['\\'.$start, "\\".$end], [$start, $end], $regex);
-		// $regex = str_replace([$start, $end], ['\\'.$start, "\\".$end], $regex);
-
-		return $start.$regex.$end.$modifiers;
+			return $start.$regex.$end;
+		}
+		else{
+			$delimiter = $delimiter ?: static::delimiter();
+			return $delimiter.$regex.$delimiter;
+		}
 	}
 
 
