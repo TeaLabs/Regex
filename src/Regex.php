@@ -165,21 +165,28 @@ class Regex
 	 * @see  Regex::delimiter()
 	 * @uses preg_quote()
 	 *
-	 * @param  string $string                The pattern to quote.
+	 * @param  string $value                The pattern to quote.
 	 * @param  null|string|false $delimiter  Delimiter used in string.
 	 * @return string   The quoted string
 	*/
-	public static function quote($string, $delimiter = null)
+	public static function quote($value, $delimiter = null)
 	{
-		if(is_null($string) || $string == '')
-			return $string;
+		if(is_null($value) || $value == '')
+			return $value;
 
 		if(is_null($delimiter))
 			$delimiter = static::delimiter();
 		elseif($delimiter === false)
 			$delimiter = null;
 
-		return preg_quote($string, $delimiter);
+		if(static::canCastValueToStr($value) || !is_iterable($value))
+			return preg_quote($value, $delimiter);
+
+		$results = [];
+		foreach ($value as $k => $v) {
+			$results[$k] = preg_quote($v, $delimiter);
+		}
+		return $results;
 	}
 
 	/**
@@ -399,20 +406,17 @@ class Regex
 		if($bracketStyle){
 			$brackets = is_array($bracketStyle) ? $bracketStyle : ['<({[', '>)}]'];
 
-			if(strpos($brackets[0], $regex_0) !== false)
-				if(strpos($brackets[1], mb_substr(rtrim($regex, 'uimsxeADSUXJ'), -1)) !== false)
+			if(mb_strpos($brackets[0], $regex_0) !== false)
+				if(mb_strpos($brackets[1], mb_substr(rtrim($regex, 'uimsxeADSUXJ'), -1)) !== false)
 					return $regex;
+
+			if(mb_strlen($delimiter) > 1)
+				return mb_substr($delimiter, 0, 1).$regex.mb_substr($delimiter, 1, 1);
 		}
 
+		$delimiter = $delimiter ?: static::delimiter();
+		return $delimiter.$regex.$delimiter;
 
-		if($bracketStyle && strlen($delimiter) > 1){
-			list($start, $end) = str_split($delimiter);
-			return $start.$regex.$end;
-		}
-		else{
-			$delimiter = $delimiter ?: static::delimiter();
-			return $delimiter.$regex.$delimiter;
-		}
 	}
 
 

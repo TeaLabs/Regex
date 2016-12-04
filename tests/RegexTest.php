@@ -82,6 +82,11 @@ class RegexTest extends TestCase
 			['\[x\/z\]', '[x/z]', '/'],
 			['\[x\/z\]', '[x/z]', null, '/'],
 			['\[x/z\]', '[x/z]', false, '/'],
+			[
+				['\[x\/z\]', '\[x\/z\]', '\[x\/z\]'],
+				['[x/z]', '[x/z]', '[x/z]'],
+				'/'
+			]
 		];
 	}
 
@@ -130,9 +135,10 @@ class RegexTest extends TestCase
 	 */
 	public function testSafeWrap($expected, $regex, $delimiter = null, $bracketStyle = false)
 	{
-		// for ($i=0; $i < $revs; $i++) {
-		$actual = Regex::safeWrap($regex, $delimiter, $bracketStyle);
-		// }
+		$revs = 1;
+		for ($i=0; $i < $revs; $i++) {
+			$actual = Regex::safeWrap($regex, $delimiter, $bracketStyle);
+		}
 		$this->assertEquals($expected, $actual);
 	}
 
