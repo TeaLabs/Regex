@@ -387,17 +387,15 @@ class Regex
 		if(!isset($regex) || $regex == '')
 			return $regex;
 
-		// if(!static::canCastValueToStr($regex) && is_iterable($regex)){
-		// 	$wrapped = [];
-		// 	foreach ($regex as $key => $value)
-		// 		$wrapped[$key] = static::safeWrap($value, $delimiter, $bracketStyle);
-		// 	return $wrapped;
-		// }
+		if(!static::canCastValueToStr($regex) && is_iterable($regex)){
+			$wrapped = [];
+			foreach ($regex as $key => $value)
+				$wrapped[$key] = static::safeWrap($value, $delimiter, $bracketStyle);
+			return $wrapped;
+		}
 
 		$regex_0 = mb_substr($regex, 0, 1);
-		$pattern =
-		$replaced = preg_replace("~^(?:[\~/#%\+]{1})|(?:[\~/#%\+]{1})([uimsxeADSUXJ]*)$~u", '~$1', $regex);
-		echo "\n**********\n Replaced \"{$regex}\" to \"$replaced\" \n**********";
+
 		if($regex_0 == '~')
 			return $regex;
 		if($regex_0 === '/')
@@ -412,7 +410,7 @@ class Regex
 		if($bracketStyle){
 			$brackets = is_array($bracketStyle) ? $bracketStyle : ['<({[', '>)}]'];
 
-			if(mbx_strpos($brackets[0], $regex_0) !== false)
+			if(mb_strpos($brackets[0], $regex_0) !== false)
 				if(mb_strpos($brackets[1], mb_substr(rtrim($regex, 'uimsxeADSUXJ'), -1)) !== false)
 					return $regex;
 

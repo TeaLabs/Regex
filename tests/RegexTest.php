@@ -180,7 +180,7 @@ class RegexTest extends TestCase
 	 */
 	public function testSafeWrapBracketStyle($expected, $regex, $delimiter = null, $bracketStyle = true)
 	{
-		$revs = 500000;
+		$revs = 1;
 		for ($i=0; $i < $revs; $i++) {
 			$actual = Regex::safeWrap($regex, $delimiter, $bracketStyle);
 		}
