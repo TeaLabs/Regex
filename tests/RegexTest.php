@@ -6,11 +6,34 @@ use PHPUnit\Framework\TestCase;
 
 class RegexTest extends TestCase
 {
+	public function allProvider()
+	{
+		return [
+			[[1.4, '3.8'], '/^(\d+)?\.\d+$/u', [1, 'sds' ,1.4, 3, '3.8', 'a122.4', 'i5']],
+			[['a122', 'i5'], '/^\w+\d+$/u', [1, 'sds' ,1.4, 3, '3.8', 'ab122.4', 'a122', 'i5']],
+			[['sds', 'ab122.4', 'a122', 'i5'], '/^[a-zA-Z]+.*$/u', [1, 'sds' ,1.4, 3, '3.8', 'ab122.4', 'a122', 'i5']],
+		];
+	}
+
+	/**
+	 * @dataProvider allProvider()
+	 */
+	public function testAll($expected, $pattern, $input, $flags = 0, $offset = 0, $length = null)
+	{
+		$revs = 1;
+		for ($i=0; $i < $revs; $i++) {
+			$actual = Regex::all($pattern, $input, $flags, $length);
+		}
+
+		$this->assertEquals($expected, array_values($actual));
+
+	}
 
 	public function delimiterProvider()
 	{
 		return [
 			[Regex::DEFAULT_DELIMITER, null],
+			[Regex::DEFAULT_DELIMITER, ''],
 			['/', '/'],
 			['+', '+'],
 			['#', '#'],
@@ -118,15 +141,7 @@ class RegexTest extends TestCase
 			[ "#{$re}#im", "#{$re}#im", '#'],
 			[ "~{$re}~iADJ", "~{$re}~iADJ"],
 			[ "+{$re}+iADJ", "+{$re}+iADJ"],
-			[ "%{$re}%iADJ", "%{$re}%iADJ"],
-			[ "[{$re}]iADJ", "[{$re}]iADJ", null, true],
-			[ "({$re})iADJ", "({$re})iADJ", null, true],
-			[ "<{$re}>iADJ", "<{$re}>iADJ", null, true],
-			[ "{{$re}}iADJ", "{{$re}}iADJ", null, true],
-			[ "{{$reb}}", "{$reb}", '{}', true],
-			[ "{{$re}}", "{$re}", '{}', ['<{[','>}]']],
-			[ "<{$reb}>", "$reb", '<>', true],
-			[ "<{$re}>", "$re", '<>', ['<{[','>}]']],
+			[ "%{$re}%iADJ", "%{$re}%iADJ"]
 		];
 	}
 
@@ -136,6 +151,36 @@ class RegexTest extends TestCase
 	public function testSafeWrap($expected, $regex, $delimiter = null, $bracketStyle = false)
 	{
 		$revs = 1;
+		for ($i=0; $i < $revs; $i++) {
+			$actual = Regex::safeWrap($regex, $delimiter, $bracketStyle);
+		}
+		$this->assertEquals($expected, $actual);
+	}
+
+
+	public function safeWrapBracketStyleProvider()
+	{
+		$re = '([a-zA-Z_][a-zA-Z0-9_-]*|)';
+		$reb = "\\{$re}\\";
+		$dlm = Regex::delimiter();
+		return [
+			[ "[{$re}]iADJ", "[{$re}]iADJ"],
+			[ "({$re})iADJ", "({$re})iADJ"],
+			[ "<{$re}>iADJ", "<{$re}>iADJ"],
+			[ "{{$re}}iADJ", "{{$re}}iADJ"],
+			[ "{{$reb}}", "{$reb}", '{}'],
+			[ "{{$re}}", "{$re}", '{}', ['<{[','>}]']],
+			[ "<{$reb}>", "$reb", '<>'],
+			[ "<{$re}>", "$re", '<>', ['<{[','>}]']],
+		];
+	}
+
+	/**
+	 * @dataProvider safeWrapBracketStyleProvider()
+	 */
+	public function testSafeWrapBracketStyle($expected, $regex, $delimiter = null, $bracketStyle = true)
+	{
+		$revs = 500000;
 		for ($i=0; $i < $revs; $i++) {
 			$actual = Regex::safeWrap($regex, $delimiter, $bracketStyle);
 		}

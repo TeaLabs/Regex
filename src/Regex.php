@@ -9,6 +9,8 @@ class Regex
 	const DEFAULT_DELIMITER = '~';
 	const DEFAULT_MODIFIERS = 'u';
 
+	protected static $possibleDelimiters = ['/', '~', '#', '%', '+'];
+
 	protected static $delimiter;
 
 	protected static $modifiers;
@@ -43,8 +45,8 @@ class Regex
 	 */
 	public static function delimiter($delimiter = null)
 	{
-		if(!is_null($delimiter))
-			static::$delimiter = $delimiter;
+		if(!is_null($delimiter) && !empty($delimiter))
+			return static::$delimiter = $delimiter;
 
 		return isset(static::$delimiter) ? static::$delimiter : self::DEFAULT_DELIMITER;
 	}
@@ -94,14 +96,15 @@ class Regex
 	 * @uses preg_match()
 	 *
 	 * @param  string $pattern
-	 * @param  string $subject
+	 * @param  mixed $subject
 	 * @param  int $flags
 	 * @param  int $offset
 	 * @return bool
 	*/
 	public static function is($pattern, $subject, $flags =0, $offset = 0)
 	{
-		return (bool) preg_match(static::addModifiers($pattern), $subject, null, $flags, $offset);
+		$matches = null;
+		return (bool) preg_match(static::addModifiers($pattern), $subject, $matches, $flags, $offset);
 	}
 
 	/**
@@ -151,7 +154,7 @@ class Regex
 	public static function modifiers($modifiers = null)
 	{
 		if(!is_null($modifiers))
-			static::$modifiers = $modifiers;
+			return static::$modifiers = $modifiers;
 
 		return isset(static::$modifiers) ? static::$modifiers : self::DEFAULT_MODIFIERS;
 	}
@@ -380,19 +383,22 @@ class Regex
 	 */
 	public static function safeWrap($regex, $delimiter = null, $bracketStyle = false)
 	{
-		if(!isset($regex) || $regex === '')
+
+		if(!isset($regex) || $regex == '')
 			return $regex;
 
-		if(!static::canCastValueToStr($regex) && is_iterable($regex)){
-			$wrapped = [];
-			foreach ($regex as $key => $value)
-				$wrapped[$key] = static::safeWrap($value, $delimiter, $bracketStyle);
-			return $wrapped;
-		}
+		// if(!static::canCastValueToStr($regex) && is_iterable($regex)){
+		// 	$wrapped = [];
+		// 	foreach ($regex as $key => $value)
+		// 		$wrapped[$key] = static::safeWrap($value, $delimiter, $bracketStyle);
+		// 	return $wrapped;
+		// }
 
 		$regex_0 = mb_substr($regex, 0, 1);
-
-		if($regex_0 === '~')
+		$pattern =
+		$replaced = preg_replace("~^(?:[\~/#%\+]{1})|(?:[\~/#%\+]{1})([uimsxeADSUXJ]*)$~u", '~$1', $regex);
+		echo "\n**********\n Replaced \"{$regex}\" to \"$replaced\" \n**********";
+		if($regex_0 == '~')
 			return $regex;
 		if($regex_0 === '/')
 			return $regex;
@@ -406,7 +412,7 @@ class Regex
 		if($bracketStyle){
 			$brackets = is_array($bracketStyle) ? $bracketStyle : ['<({[', '>)}]'];
 
-			if(mb_strpos($brackets[0], $regex_0) !== false)
+			if(mbx_strpos($brackets[0], $regex_0) !== false)
 				if(mb_strpos($brackets[1], mb_substr(rtrim($regex, 'uimsxeADSUXJ'), -1)) !== false)
 					return $regex;
 
@@ -458,4 +464,36 @@ class Regex
 
 		return false;
 	}
+
+
+	/**
+	 * Get a valid iterable string(s) from the given value.
+	 *
+	 * @param  mixed   $value
+	 * @param  bool    $strict
+	 * @param  string  $method
+	 * @param  string  $argName
+	 * @return array|Traversable
+	 * @throws TypeError
+	 */
+	protected static function strToIterableOrIterable($value, $strict = false, $method = null, $argName = null)
+	{
+		if(static::canCastValueToStr($value))
+			return [$value];
+
+		if(is_iterable($value))
+			return $value;
+
+		if(!$strict)
+			return (array) $value;
+
+		$method = $method ?: '';
+		$argName = $argName ?: '';
+		$type = ucfirst(is_object($value) ? get_class($value) : gettype($value));
+
+		throw new \TypeError("Regex method \"{$method}\" argument \"{$argName}\":"
+			." Accepts values that can be cast to string (see Tea\Uzi\can_str_cast()),"
+			." arrays or Traversable objects. \"{$type}\" given.");
+	}
+
 }
