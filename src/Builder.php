@@ -8,27 +8,30 @@ use Tea\Regex\Exception\InvalidRegexPatternException;
 */
 class Builder
 {
+
+	// protected $modifiers = [
+	// 	'u' => null,
+	// 	'i' => null,
+	// 	'm' => null,
+	// 	's' => null,
+	// 	'x' => null,
+	// 	'A' => null,
+	// 	'D' => null,
+	// 	'S' => null,
+	// 	'U' => null,
+	// 	'X' => null,
+	// 	'J' => null
+	// ];
+
 	/**
 	 * @var array
 	 */
-	protected $modifiers = [
-		'u' => null,
-		'i' => null,
-		'm' => null,
-		's' => null,
-		'x' => null,
-		'A' => null,
-		'D' => null,
-		'S' => null,
-		'U' => null,
-		'X' => null,
-		'J' => null
-	];
+	protected $modifiers = '';
 
 	/**
 	 * @var string
 	 */
-	protected $_delimiter = "/";
+	protected $delimiter;
 
 	/**
 	 * @var string
@@ -120,7 +123,6 @@ class Builder
 	 */
 	public function __construct($pattern = null)
 	{
-
 		if($pattern instanceof self){
 			$this->modifiers($pattern->getModifiers());
 			$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($pattern);
@@ -137,9 +139,6 @@ class Builder
 			if($components['literal'])
 				$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($components['literal']);
 		}
-
-		$this->modifiers(Config::modifiers());
-		$this->delimiter = Config::delimiter();
 
 		$this->clear();
 	}
@@ -328,27 +327,48 @@ class Builder
 	 *
 	 * @see \Tea\Regex\Modifiers  For possible modifiers.
 	 *
-	 * @param string $modifiers
+	 * @param string|iterable $modifiers
 	 * @return $this
-	 *
-	 * @throws \Tea\Regex\InvalidModifierException If an invalid
 	 */
 	public function modifiers($modifiers)
 	{
-		$modifiers = Modifiers::toAscii($modifiers);
-
-		if(!is_none_string_iterable($modifiers)){
-			$modifiers = str_split(Modifiers::toAscii($modifiers));
-		}
+		$modifiers = is_none_string_iterable($modifiers)
+				? $modifiers : str_split((string) $modifiers);
 
 		foreach ($modifiers as $modifier) {
-			if(!array_key_exists($modifier, $this->modifiers)){
-				throw new InvalidModifierException($modifier);
-				continue;
-			}
-
-			$this->modifiers[$modifier] = $modifier;
+			if(strpos($this->modifiers, $modifier) === false)
+				$this->modifiers .= $modifier;
 		}
+		return $this;
+	}
+
+	/**
+	 * Add the given modifier to the regex.
+	 *
+	 * @see \Tea\Regex\Modifiers  For possible modifiers.
+	 *
+	 * @param string $modifier
+	 * @return $this
+	 */
+	public function modifier($modifier)
+	{
+		if(strpos($this->modifiers, $modifier) === false)
+			$this->modifiers .= $modifier;
+
+		return $this;
+	}
+
+	/**
+	 * Remove the given modifier.
+	 *
+	 * @see \Tea\Regex\Modifiers  For possible modifiers.
+	 *
+	 * @param  string   $modifier
+	 * @return $this
+	 */
+	public function remeveModifier($modifier)
+	{
+		$this->modifiers = str_replace($modifier, '', $this->modifiers);
 		return $this;
 	}
 
@@ -359,24 +379,31 @@ class Builder
 	 *
 	 * @param  string|iterable   $modifiers
 	 * @return $this
-	 *
-	 * @throws \Tea\Regex\InvalidModifierException If an invalid
 	 */
 	public function remeveModifiers($modifiers)
 	{
-		if(!is_none_string_iterable($modifiers)){
-			$modifiers = str_split(Modifiers::toAscii($modifiers));
-		}
+		$this->modifiers = str_replace($modifiers, '', $this->modifiers);
+		return $this;
+	}
+
+	/**
+	 * Determine whether the regex has any of the given modifiers.
+	 *
+	 * @see \Tea\Regex\Modifiers  For possible modifiers.
+	 *
+	 * @param  string   $modifier
+	 * @return bool
+	 */
+	public function hasModifier($modifiers)
+	{
+		$modifiers = is_none_string_iterable($modifiers)
+				? $modifiers : str_split((string) $modifiers);
 
 		foreach ($modifiers as $modifier) {
-			if(!array_key_exists($modifier, $$this->modifiers)){
-				throw new InvalidModifierException($modifier);
-				continue;
-			}
-
-			$this->modifiers[$modifier] = null;
+			if(strpos($this->modifiers, $modifier) !== false)
+				return true;
 		}
-		return $this;
+		return false;
 	}
 
 	/**

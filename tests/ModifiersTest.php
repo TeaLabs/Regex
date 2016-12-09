@@ -12,11 +12,6 @@ class ModifiersTest extends TestCase
 			['s', 's'],
 			['s', 'š'],
 			['uix', 'uix'],
-			// ['uix', 'uix'],
-			// ['uix', 'uix'],
-			// ['uix', 'uix'],
-			// ['uix', 'uix'],
-
 			['uix', 'ùìx'],
 			['ui', 'ǜùì']
 		];
@@ -27,7 +22,7 @@ class ModifiersTest extends TestCase
 	 */
 	public function testToAscii($expected, $modifiers)
 	{
-		$revs = 200000;
+		$revs = 1;
 
 		for ($i=0; $i < $revs; $i++) {
 			$actual = Modifiers::toAscii($modifiers);
