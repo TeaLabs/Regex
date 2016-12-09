@@ -4,81 +4,28 @@ namespace Tea\Regex;
 /**
 *
 */
-class Regex extends Builder
+class Regex
 {
-	const DEFAULT_DELIMITER = '~';
-	const DEFAULT_MODIFIERS = 'u';
 
-	/**
-	 * String of possible delimiters
-	 *
-	 * @var string
-	 */
-	protected static $possibleDelimiters = '/~#%+';
-
-	/**
-	 * String of allowed modifiers.
-	 *
-	 * @var string
-	 */
-	protected static $allowedModifiers = 'uimsxADSUXJ';
-
-	/**
-	 * The global default delimiter set on runtime.
-	 *
-	 * @var string
-	 */
-	protected static $defaultDelimiter;
-
-	/**
-	 * The global default modifiers set on runtime.
-	 *
-	 * @var string
-	 */
-	protected static $defaultModifiers;
 
 
 	/**
-	 * Create a new Regex instance.
+	 * Create a new Builder instance. Accepts an optional pattern from which
+	 * the builder can be created. The pattern can be another Builder instance
+	 * or a raw regex string.
+	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
+	 * instance and can't be converted to string.
 	 *
-	 * @param  null|string $pattern
-	 * @return static
+	 * @see   \Tea\Regex\Builder::build()
+	 * @uses  \Tea\Regex\Builder::build()
+	 * @param  string|\Tea\Regex\Builder|null   $pattern
+	 * @return \Tea\Regex\Builder
+	 *
+	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
 	 */
-	public static function build($pattern = null, $modifiers = null, $delimiter = null)
+	public static function build($pattern = null)
 	{
-		return is_null($pattern)
-				? Builder::create($modifiers, $delimiter)
-				: Builder::cast($pattern, $modifiers, $delimiter);
-	}
-
-	/**
-	 * Get/set the default regex delimiter. Defaults to Regex::DEFAULT_DELIMITER
-	 * if not already set.
-	 *
-	 * @param  null|string $delimiter
-	 * @return string
-	 */
-	public static function defaultDelimiter($delimiter = null)
-	{
-		if(!is_null($delimiter) && !empty($delimiter))
-			return static::$defaultDelimiter = $delimiter;
-
-		return isset(static::$defaultDelimiter) ? static::$defaultDelimiter : self::DEFAULT_DELIMITER;
-	}
-
-	/**
-	 * Get/set the default modifiers. Defaults to Regex::DEFAULT_MODIFIERS
-	 * if not already set.
-	 *
-	 * @param  null|string $modifiers
-	 * @return string
-	 */
-	public static function defaultModifiers($modifiers = null)
-	{
-		if(!is_null($modifiers))
-			return static::$defaultModifiers = $modifiers;
-
-		return isset(static::$defaultModifiers) ? static::$defaultModifiers : self::DEFAULT_MODIFIERS;
+		return Builder::build($pattern);
 	}
 
 	/**
@@ -100,7 +47,7 @@ class Regex extends Builder
 			return $value;
 
 		if(is_null($delimiter))
-			$delimiter = static::defaultDelimiter();
+			$delimiter = Config::delimiter();
 		elseif($delimiter === false)
 			$delimiter = null;
 
@@ -114,53 +61,5 @@ class Regex extends Builder
 		return $results;
 	}
 
-
-	/**
-	 * Determine if the current value can be cast to string.
-	 *
-	 * @param  mixed   $value
-	 * @return bool
-	 */
-	protected static function canCastValueToStr($value)
-	{
-		if(is_null($value) || is_scalar($value))
-			return true;
-
-		if(is_object($value) && method_exists($value, '__toString'))
-			return true;
-
-		return false;
-	}
-
-
-	/**
-	 * Get a valid iterable string(s) from the given value.
-	 *
-	 * @param  mixed   $value
-	 * @param  bool    $strict
-	 * @param  string  $method
-	 * @param  string  $argName
-	 * @return array|Traversable
-	 * @throws TypeError
-	 */
-	protected static function strToIterableOrIterable($value, $strict = false, $method = null, $argName = null)
-	{
-		if(static::canCastValueToStr($value))
-			return [$value];
-
-		if(is_iterable($value))
-			return $value;
-
-		if(!$strict)
-			return (array) $value;
-
-		$method = $method ?: '';
-		$argName = $argName ?: '';
-		$type = ucfirst(is_object($value) ? get_class($value) : gettype($value));
-
-		throw new \TypeError("Regex method \"{$method}\" argument \"{$argName}\":"
-			." Accepts values that can be cast to string (see Tea\Uzi\can_str_cast()),"
-			." arrays or Traversable objects. \"{$type}\" given.");
-	}
 
 }

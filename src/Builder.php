@@ -135,7 +135,7 @@ class Builder
 				$this->modifiers($components['modifiers']);
 
 			if($components['literal'])
-				$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($pattern);
+				$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($components['literal']);
 		}
 
 		$this->modifiers(Config::modifiers());
