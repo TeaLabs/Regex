@@ -33,13 +33,6 @@ class Expression
 		$this->pattern  = $pattern;
 		$this->modifiers = $modifiers ?: Config::modifiers();
 		$this->delimiter = $delimiter ?: Config::delimiter();
-		$this->modifiers = $flags;
-		$this->_pregMatchFlags = $pregMatchFlags;
-
-		if (strpos($this->_flags, "g") !== false) {
-			$this->_flags  = str_replace("g", "", $this->_flags);
-			$this->_method = "preg_match_all";
-		}
 	}
 
 	/**

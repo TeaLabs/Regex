@@ -44,19 +44,12 @@ class Regex extends Builder
 	 * @param  null|string $pattern
 	 * @return static
 	 */
-	public static function build($pattern = null, $modifiers = null)
+	public static function build($pattern = null, $modifiers = null, $delimiter = null)
 	{
-		if(!is_null($delimiter) && !empty($delimiter))
-			return static::$defaultDelimiter = $delimiter;
-
-		return isset(static::$defaultDelimiter) ? static::$defaultDelimiter : self::DEFAULT_DELIMITER;
+		return is_null($pattern)
+				? Builder::create($modifiers, $delimiter)
+				: Builder::cast($pattern, $modifiers, $delimiter);
 	}
-
-	protected static function parsePattern($pattern, $flags = 0)
-	{
-
-	}
-
 
 	/**
 	 * Get/set the default regex delimiter. Defaults to Regex::DEFAULT_DELIMITER
