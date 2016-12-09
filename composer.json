@@ -26,12 +26,20 @@
         "symfony/polyfill-mbstring" : "~1.3.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "~5.0"
+        "phpunit/phpunit": "~5.0",
+        "phpbench/phpbench": "@dev",
+        "spatie/regex" : "~1.0",
+        "gherkins/regexpbuilderphp" : "0.*.*",
+        "verbalexpressions/php-verbal-expressions" : "@dev",
+        "markwilson/verbal-expressions-php": "dev-master"
     },
     "autoload": {
         "psr-4": {
             "Tea\\Regex\\": "src/"
-        }
+        },
+        "files" : [
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

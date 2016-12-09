@@ -7,8 +7,14 @@
          stopOnFailure="false"
          syntaxCheck="false">
     <testsuites>
-        <testsuite name="regex.regex">
-            <file>tests/RegexTest.php</file>
+        <testsuite name="modifiers">
+            <file>tests/ModifiersTest.php</file>
+        </testsuite>
+        <testsuite name="config">
+            <file>tests/ConfigTest.php</file>
+        </testsuite>
+        <testsuite name="builder">
+            <file>tests/BuilderTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
