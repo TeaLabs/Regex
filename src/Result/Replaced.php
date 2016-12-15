@@ -20,7 +20,6 @@ class Replaced extends Result
 	 */
 	protected $count;
 
-
 	public function __construct($pattern, $subject, $replacement, $result, $count)
 	{
 		parent::__construct($pattern, $subject);
@@ -30,44 +29,6 @@ class Replaced extends Result
 		$this->count = $count;
 	}
 
-	public static function for($pattern, $replacement, $subject, $limit)
-	{
-		try {
-			list($result, $count) = is_callable($replacement) ?
-				static::doReplacementWithCallable($pattern, $replacement, $subject, $limit) :
-				static::doReplacement($pattern, $replacement, $subject, $limit);
-		} catch (Exception $exception) {
-			throw RegexFailed::replace($pattern, $subject, $exception->getMessage());
-		}
-
-		if ($result === null) {
-			throw RegexFailed::replace($pattern, $subject, static::lastPregError());
-		}
-
-		return new static($pattern, $replacement, $subject, $result, $count);
-	}
-
-	protected static function doReplacement($pattern, $replacement, $subject, $limit)
-	{
-		$count = 0;
-
-		$result = preg_replace($pattern, $replacement, $subject, $limit, $count);
-
-		return [$result, $count];
-	}
-
-	protected static function doReplacementWithCallable($pattern, callable $replacement, $subject, $limit)
-	{
-		$replacement = function (array $matches) use ($pattern, $subject, $replacement) {
-			return $replacement(new MatchResult($pattern, $subject, true, $matches));
-		};
-
-		$count = 0;
-
-		$result = preg_replace_callback($pattern, $replacement, $subject, $limit, $count);
-
-		return [$result, $count];
-	}
 
 	/**
 	 * Get the raw result.
@@ -87,6 +48,16 @@ class Replaced extends Result
 	public function count()
 	{
 		return $this->count;
+	}
+
+	/**
+	 * Determine whether the replaced result is an array.
+	 *
+	 * @return bool
+	 */
+	public function isArray()
+	{
+		return is_array($this->result);
 	}
 
 
