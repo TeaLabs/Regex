@@ -13,7 +13,7 @@ class Config
 	 *
 	 * @var string
 	 */
-	protected static $delimiter = '~';
+	protected static $delimiter = '/';
 
 	/**
 	 * The global default modifiers set on runtime.
@@ -21,7 +21,6 @@ class Config
 	 * @var string
 	 */
 	protected static $modifiers = 'u';
-
 
 	/**
 	 * Get/set the default regex delimiter. If a valid delimiter is passed,
@@ -55,7 +54,7 @@ class Config
 	 */
 	public static function isValidDelimiter($value, $orException = false)
 	{
-		if(is_stringable($value) && strpos(static::ALLOWED_DELIMITERS, (string) $value) !== false)
+		if(strpos(static::ALLOWED_DELIMITERS, (string) $value) !== false)
 			return true;
 
 		if(!$orException)

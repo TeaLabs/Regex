@@ -13,8 +13,14 @@
         <testsuite name="config">
             <file>tests/ConfigTest.php</file>
         </testsuite>
+        <testsuite name="results">
+            <directory>tests/Result/</directory>
+        </testsuite>
         <testsuite name="builder">
             <file>tests/BuilderTest.php</file>
+        </testsuite>
+        <testsuite name="regex">
+            <file>tests/RegexTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

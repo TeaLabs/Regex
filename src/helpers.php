@@ -13,7 +13,7 @@ namespace Tea\Regex;
  */
 function re($pattern = null, $modifiers = null)
 {
-	return new Regex($str, $encoding);
+	return Helpers::re($pattern, $modifiers);
 }
 
 
@@ -26,15 +26,7 @@ function re($pattern = null, $modifiers = null)
  */
 function mbstring_loaded($strict = false)
 {
-	static $extension, $polyfill;
-
-	if(is_null($extension))
-		$extension = extension_loaded('mbstring');
-
-	if(is_null($polyfill))
-		$polyfill = function_exists('mb_strlen');
-
-	return ($extension || (!$strict && $polyfill));
+	return Helpers::mbstringLoaded($strict);
 }
 
 
@@ -48,7 +40,7 @@ function mbstring_loaded($strict = false)
  */
 function is_stringable($value)
 {
-	return is_null($value) || is_scalar($value) || (is_object($value) && method_exists($value, '__toString'));
+	return Helpers::isStringable($value);
 }
 
 /**
@@ -59,6 +51,6 @@ function is_stringable($value)
  */
 function is_none_string_iterable($value)
 {
-	return is_iterable($value) && !is_stringable($value);
+	return Helpers::isNoneStringIterable($value);
 }
 

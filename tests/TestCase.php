@@ -1,5 +1,5 @@
 <?php
-namespace Tea\Tests\Regex;
+namespace Tea\Regex\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 

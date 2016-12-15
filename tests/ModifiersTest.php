@@ -1,5 +1,5 @@
 <?php
-namespace Tea\Tests\Regex;
+namespace Tea\Regex\Tests;
 
 use Tea\Regex\Modifiers;
 

@@ -43,7 +43,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tea\\Tests\\Regex\\": "tests/"
+            "Tea\\Regex\\Tests\\": "tests/"
         }
     },
     "extra": {

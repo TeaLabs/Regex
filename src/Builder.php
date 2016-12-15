@@ -24,14 +24,9 @@ class Builder
 	// ];
 
 	/**
-	 * @var array
-	 */
-	protected $modifiers = '';
-
-	/**
 	 * @var string
 	 */
-	protected $delimiter;
+	protected $modifiers;
 
 	/**
 	 * @var string
@@ -121,40 +116,15 @@ class Builder
 	 *
 	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
 	 */
-	public function __construct($pattern = null)
+	public function __construct($pattern = null, $modifiers = null)
 	{
-		if($pattern instanceof self){
-			$this->modifiers($pattern->getModifiers());
-			$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($pattern);
-		}
-		elseif($pattern){
-			if(!is_stringable($pattern)){
-				throw new InvalidRegexPatternException($pattern);
-			}
-
-			$components = static::parsePattern($pattern);
-			if($components['modifiers'])
-				$this->modifiers($components['modifiers']);
-
-			if($components['literal'])
-				$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($components['literal']);
-		}
-
 		$this->clear();
+
+		$this->modifiers = !is_null($modifiers) ? $modifiers : Config::modifiers();
+
+		if($pattern)
+			$this->raw($pattern);
 	}
-
-	public function __toString()
-	{
-		return $this->compile();
-	}
-
-
-	public function compile($modifiers = null)
-	{
-		if($modifiers) $this->modifiers($modifiers);
-		return $this->_delimiter . $this->getLiteral() . $this->_delimiter . $this->getModifiers();
-	}
-
 
 	/**
 	 * reset values
@@ -382,6 +352,9 @@ class Builder
 	 */
 	public function remeveModifiers($modifiers)
 	{
+		$modifiers = is_none_string_iterable($modifiers)
+				? $modifiers : str_split((string) $modifiers);
+
 		$this->modifiers = str_replace($modifiers, '', $this->modifiers);
 		return $this;
 	}
@@ -413,7 +386,7 @@ class Builder
 	 */
 	public function getModifiers()
 	{
-		return join('', $this->getModifiersArray());
+		return $this->modifiers;
 	}
 
 	/**
@@ -423,7 +396,7 @@ class Builder
 	 */
 	public function getModifiersArray()
 	{
-		return array_filter(array_values($this->modifiers));
+		return array_unique(str_split($this->modifiers));
 	}
 
 
@@ -440,9 +413,9 @@ class Builder
 	public function ignoreCase($enable = true)
 	{
 		if($enable)
-			return $this->modifiers(Modifiers::CASELESS);
+			return $this->modifier(Modifiers::CASELESS);
 		else
-			return $this->remeveModifiers(Modifiers::CASELESS);
+			return $this->remeveModifier(Modifiers::CASELESS);
 	}
 
 	/**
@@ -458,9 +431,9 @@ class Builder
 	public function multiLine($enable = true)
 	{
 		if($enable)
-			return $this->modifiers(Modifiers::MULTILINE);
+			return $this->modifier(Modifiers::MULTILINE);
 		else
-			return $this->remeveModifiers(Modifiers::MULTILINE);
+			return $this->remeveModifier(Modifiers::MULTILINE);
 	}
 
 	public function pregMatchFlags($flags)
@@ -929,12 +902,133 @@ class Builder
 		return $this;
 	}
 
+	/**
+	 * Append a raw literal.
+	 *
+	 * @todo   Add flags to provide options on what will be parsed.
+	 *
+	 * @param  Tea\Regex\Builder|string  $regex
+	 * @param  int  $flags
+	 * @return $this
+	 */
+	public function raw($pattern, $flags = 0)
+	{
+		$this->flushState();
+
+		if($pattern instanceof self){
+			$this->modifiers($pattern->getModifiers());
+			$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($pattern);
+		}
+		elseif($pattern){
+			if(!is_stringable($pattern)){
+				throw new InvalidRegexPatternException($pattern);
+			}
+
+			$components = static::parsePattern($pattern);
+			if($components['modifiers'])
+				$this->modifiers($components['modifiers']);
+
+			if($components['literal'])
+				$this->_literal[] = $this->combineGroupNumberingAndGetLiteral($components['literal']);
+		}
+		return $this;
+	}
+
 	public function optional($r)
 	{
 		$this->max(1);
 		$this->_like = $this->combineGroupNumberingAndGetLiteral($r);
 
 		return $this;
+	}
+
+	/**
+	 * Quote/escape regular expression characters in given value.
+	 *
+	 * @param  string   $value
+	 * @return string
+	 */
+	protected function sanitize($value)
+	{
+		return preg_quote($value, Config::delimiter());
+	}
+
+	/**
+	 * Create a new builder instance. Accepts an optional pattern from which
+	 * the builder can be created. The pattern can be another Builder instance
+	 * or a raw regex string. The modifiers of the current instance will be set
+	 * on the new instance.
+	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
+	 * instance and can't be converted to string.
+	 *
+	 * @param  string|\Tea\Regex\Builder|null   $pattern
+	 * @param  string|null|false                $modifiers
+	 * @return \Tea\Regex\Builder
+	 *
+	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
+	 */
+	public function getNew($pattern = null, $modifiers = null)
+	{
+		$modifiers = is_null($modifiers)
+			? $this->getModifiers()
+			: ($modifiers === false ? null : $modifiers);
+
+		return new static($pattern, $modifiers);
+	}
+
+	/**
+	 * Get the Compiled string version the current pattern.
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return (string) $this->compile();
+	}
+
+	/**
+	 * Compile the current pattern into an Regex object.
+	 *
+	 * @return \Tea\Regex\Regex
+	 */
+	public function compile()
+	{
+		return new RegularExpression($this->getLiteral(), $this->getModifiers());
+	}
+
+	/**
+	 * Create a new Builder instance. Accepts an optional pattern from which
+	 * the builder can be created. The pattern can be another Builder instance
+	 * or a raw regex string.
+	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
+	 * instance and can't be converted to string.
+	 *
+	 * @param  string|\Tea\Regex\Builder|null   $pattern
+	 * @param  string|null                      $modifiers
+	 *
+	 * @return \Tea\Regex\Builder
+	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
+	 */
+	public static function build($pattern = null, $modifiers = null)
+	{
+		return new static($pattern, $modifiers);
+	}
+
+	/**
+	 * Cast a value into a Builder instance. If the value is already a Builder
+	 * instance, it will be returned as it is. Otherwise will attempt to create
+	 * a new Builder instance from the value as the pattern.
+	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
+	 * instance and can't be converted to string.
+	 *
+	 * @param  mixed   $pattern
+	 * @return \Tea\Regex\Builder
+	 *
+	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
+	 */
+	public static function cast($pattern)
+	{
+		return $pattern instanceof self ? $pattern : new static($pattern);
 	}
 
 	/**
@@ -957,70 +1051,7 @@ class Builder
 
 		$components = ['literal' => '', 'modifiers' => ''];
 		return array_intersect_key(array_merge($components, $matches), $components);
-
 	}
 
-	/**
-	 * Quote/escape regular expression characters in given value.
-	 *
-	 * @param  string   $value
-	 * @return string
-	 */
-	protected function sanitize($value)
-	{
-		return preg_quote($value, $this->delimiter);
-	}
-
-	/**
-	 * Create a new builder instance. Accepts an optional pattern from which
-	 * the builder can be created. The pattern can be another Builder instance
-	 * or a raw regex string. The modifiers of the current instance will be set
-	 * on the new instance.
-	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
-	 * instance and can't be converted to string.
-	 *
-	 * @param  string|\Tea\Regex\Builder|null   $pattern
-	 * @return \Tea\Regex\Builder
-	 *
-	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
-	 */
-	public function getNew($pattern = null)
-	{
-		return static::build($pattern)->modifiers($this->modifiers);
-	}
-
-	/**
-	 * Create a new Builder instance. Accepts an optional pattern from which
-	 * the builder can be created. The pattern can be another Builder instance
-	 * or a raw regex string.
-	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
-	 * instance and can't be converted to string.
-	 *
-	 * @param  string|\Tea\Regex\Builder|null   $pattern
-	 * @return \Tea\Regex\Builder
-	 *
-	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
-	 */
-	public static function build($pattern = null)
-	{
-		return new static($pattern);
-	}
-
-	/**
-	 * Cast a value into a Builder instance. If the value is already a Builder
-	 * instance, it will be returned as it is. Otherwise will attempt to create
-	 * a new Builder instance from the value as the pattern.
-	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
-	 * instance and can't be converted to string.
-	 *
-	 * @param  mixed   $pattern
-	 * @return \Tea\Regex\Builder
-	 *
-	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
-	 */
-	public static function cast($pattern)
-	{
-		return $pattern instanceof self ? $pattern : new static($pattern);
-	}
 
 }

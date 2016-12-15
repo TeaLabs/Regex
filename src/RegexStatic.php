@@ -145,21 +145,6 @@ class RegexStatic
 	}
 
 	/**
-	 * Get/set the default modifiers. Defaults to Regex::DEFAULT_MODIFIERS
-	 * if not already set.
-	 *
-	 * @param  null|string $modifiers
-	 * @return string
-	 */
-	public static function modifiers($modifiers = null)
-	{
-		if(!is_null($modifiers))
-			return static::$modifiers = $modifiers;
-
-		return isset(static::$modifiers) ? static::$modifiers : self::DEFAULT_MODIFIERS;
-	}
-
-	/**
 	 * Quote (escape) regular expression characters and the delimiter in string.
 	 * Unless a $delimiter is passed, the default delimiter (Regex::delimiter())
 	 * will be quoted. FALSE can be passed as the delimiter to prevent any delimiter
