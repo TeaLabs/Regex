@@ -934,8 +934,67 @@ class MatchesTest extends TestCase
 		$actual = $matches->$name;
 	}
 
-	public function testIteration()
+	public function iterationProvider()
 	{
-		$this->emptyTest(__METHOD__);
+		return [
+			[
+				[
+					'555-1212',
+				],
+				"/(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					['555-1212', '1-800-555-1212'],
+				],
+				"/(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					['555-1212', '1-800-555-1212'],
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					'Call',
+					'555-1212',
+				],
+				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					['Call', 'or'],
+					['555-1212', '1-800-555-1212'],
+				],
+				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+		];
+	}
+
+
+	/**
+	 * @dataProvider iterationProvider()
+	 */
+	public function testIteration($expected, $pattern, $subject, $globalMatch = false)
+	{
+		$matches = $this->match($pattern, $subject, $globalMatch);
+		$this->assertIsMatches($matches);
+		$actual = [];
+		foreach ($matches as $key => $value) {
+			$this->assertInternalType('integer', $key);
+			$actual[] = $value;
+		}
+		$this->assertEquals($expected, $actual);
 	}
 }
