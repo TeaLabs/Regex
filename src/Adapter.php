@@ -39,7 +39,7 @@ class Adapter
 	{
 		try{
 			$flags = $invert ? PREG_GREP_INVERT : 0;
-			$result = preg_grep($pattern, Helpers::toArray($input), $flags);
+			$result = preg_grep($pattern, $input, $flags);
 		}
 		catch (Exception $exception){
 			throw FilterError::create($pattern, $input, $exception->getMessage());

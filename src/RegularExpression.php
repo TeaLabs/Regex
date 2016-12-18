@@ -22,7 +22,7 @@ class RegularExpression
 	protected $delimiter;
 
 	/**
-	 * Instantiate the Regular Expression instance.
+	 * Instantiate the RegularExpression instance.
 	 *
 	 * @param  string              $body
 	 * @param  string|null|false   $modifiers
@@ -32,38 +32,9 @@ class RegularExpression
 	public function __construct($body, $modifiers = null, $delimiter = null)
 	{
 		$this->body = $body;
-		$this->modifiers = $modifiers === false ? '' : ($modifiers ?: Config::modifiers());
+		$this->modifiers = $modifiers === false ? null : ($modifiers ?: Config::modifiers());
 		$this->delimiter = $delimiter ?: Config::delimiter();
 	}
-
-	/**
-	 * Create a Regular Expression instance.
-	 *
-	 * @param  string              $body
-	 * @param  string|null|false   $modifiers
-	 * @param  string|null         $delimiter
-	 * @return static
-	 */
-	public static function create($body, $modifiers = null, $delimiter = null)
-	{
-		return new static($body, $modifiers, $delimiter);
-	}
-
-	/**
-	 * Create a Regular Expression instance from a possibly complete regex string.
-	 * The given regex string will be parsed to extract the delimiter and modifiers
-	 * if any, and the regex body. If either the delimiter or modifiers are missing,
-	 * the defaults (as set in \Tea\Regex\Config) will be used.
-	 *
-	 * @param string   $pattern
-	 * @return static
-	 */
-	public static function parse($pattern)
-	{
-		$pattern = Adapter::parsePattern($pattern);
-		return new static($pattern->body, $pattern->modifiers, $pattern->delimiter);
-	}
-
 
 	/**
 	 * Filter the given input and return only the entries that match the pattern.
@@ -231,15 +202,34 @@ class RegularExpression
 		return Adapter::split($this, $subject, $limit, $flags);
 	}
 
-
 	/**
-	 * Get the full regular expression string.
+	 * Get the regex body.
 	 *
 	 * @return string
 	 */
-	public function pattern()
+	public function getBody()
 	{
-		return $this->delimiter.$this->body.$this->delimiter.$this->modifiers;
+		return $this->body;
+	}
+
+	/**
+	 * Get the regex modifiers.
+	 *
+	 * @return string
+	 */
+	public function getModifiers()
+	{
+		return $this->modifiers;
+	}
+
+	/**
+	 * Get the regex delimiter.
+	 *
+	 * @return string
+	 */
+	public function getDelimiter()
+	{
+		return $this->delimiter;
 	}
 
 	/**
@@ -249,6 +239,82 @@ class RegularExpression
 	 */
 	public function __toString()
 	{
-		return $this->pattern();
+		return $this->getDelimiter()
+				.$this->getBody()
+				.$this->getDelimiter()
+				.$this->getModifiers();
 	}
+
+
+	/**
+	 * Create a RegularExpression instance.
+	 *
+	 * @param  string              $body
+	 * @param  string|null|false   $modifiers
+	 * @param  string|null         $delimiter
+	 * @return static
+	 */
+	public static function create($body, $modifiers = null, $delimiter = null)
+	{
+		return new static($body, $modifiers, $delimiter);
+	}
+
+	/**
+	 * Create a RegularExpression instance from a possibly complete regex string
+	 * or another RegularExpression instance.
+	 * If the given pattern is string it will be parsed to extract the delimiter
+	 * and modifiers if any, and the regex body. If either the delimiter or
+	 * modifiers are missing, the defaults (as set in \Tea\Regex\Config) will
+	 * be used.
+	 *
+	 * @param  string|\Tea\Regex\RegularExpression  $pattern
+	 * @param  string|null|false                    $modifiers
+	 * @param  string|null                          $delimiter
+	 * @return static
+	 */
+	public static function from($pattern, $modifiers = null, $delimiter = null)
+	{
+		if($pattern instanceof self)
+			return static::fromInstance($pattern, $modifiers, $delimiter);
+		else
+			return static::fromString($pattern, $modifiers, $delimiter);
+	}
+
+	/**
+	 * Create a RegularExpression instance from another RegularExpression instance.
+	 *
+	 * @param  \Tea\Regex\RegularExpression  $pattern
+	 * @param  string|null|false             $modifiers
+	 * @param  string|null                   $delimiter
+	 * @return static
+	 */
+	public static function fromInstance(RegularExpression $pattern, $modifiers = null, $delimiter = null)
+	{
+		$modifiers = is_null($modifiers)
+			? ($pattern->getModifiers() === null ? false : $pattern->getModifiers()) : $modifiers;
+		$delimiter = is_null($delimiter) ? $pattern->getDelimiter() : $delimiter;
+
+		return new static($pattern->getBody(), $modifiers, $delimiter);
+	}
+
+	/**
+	 * Create a RegularExpression instance from a possibly complete regex string.
+	 * The given regex string will be parsed to extract the delimiter and modifiers
+	 * if any, and the regex body. If either the delimiter or modifiers are missing,
+	 * the defaults (as set in \Tea\Regex\Config) will be used.
+	 *
+	 * @param  string  $pattern
+	 * @return static
+	 */
+	public static function fromString($pattern, $modifiers = null, $delimiter = null)
+	{
+		$pattern = Adapter::parsePattern($pattern);
+
+		$modifiers = is_null($modifiers) ? $pattern->modifiers : $modifiers;
+		$delimiter = is_null($delimiter) ? $pattern->delimiter : $delimiter;
+
+		return new static($pattern->body, $modifiers, $delimiter);
+	}
+
+
 }
