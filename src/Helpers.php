@@ -70,7 +70,7 @@ class Helpers
 		return is_iterable($value) && !static::isStringable($value);
 	}
 
-	public static function implodeIterable($iterable, $withKeys = true, $glue = null, $prefix = '[', $suffix = ']')
+	public static function implodeIterable($iterable, $withKeys = false, $glue = null, $prefix = '[', $suffix = ']')
 	{
 		$results = [];
 		foreach ($iterable as $key => $value) {
@@ -104,7 +104,10 @@ class Helpers
 
 	public static function toArray($object)
 	{
-		if(is_iterable($object))
+		if(is_array($object))
+			return $object;
+
+		if(static::isNoneStringIterable($object))
 			return static::iterableToArray($object);
 
 		return (array) $object;
@@ -118,6 +121,27 @@ class Helpers
 	public static function value($object)
 	{
 		return $object instanceof Closure ? $object() : $object;
+	}
+
+	public static function iterFirst($array, callable $callback = null, $default = null)
+	{
+		if (is_null($callback)) {
+			if (empty($array)) {
+				return static::value($default);
+			}
+
+			foreach ($array as $item) {
+				return $item;
+			}
+		}
+
+		foreach ($array as $key => $value) {
+			if (call_user_func($callback, $value, $key)) {
+				return $value;
+			}
+		}
+
+		return static::value($default);
 	}
 }
 

@@ -1,6 +1,8 @@
 <?php
 namespace Tea\Regex\Result;
 
+use BadMethodCallException;
+
 abstract class Result implements ResultInterface
 {
 
@@ -57,10 +59,33 @@ abstract class Result implements ResultInterface
 		return $this->subject;
 	}
 
-
-	protected static function lastPregError()
+	/**
+	 * Always throws a BadMethodCallException since Match objects are immutable.
+	 * Defined to meet \ArrayAccess implementation.
+	 *
+	 * @param  string|int  $key
+	 * @param  mixed  $value
+	 * @return void
+	 * @throws \BadMethodCallException
+	 */
+	public function offsetSet($key, $value)
 	{
-		return array_flip(get_defined_constants(true)['pcre'])[preg_last_error()];
+		$type = get_class($this);
+		throw new BadMethodCallException("Error setting offset '{$key}'. {$type} are immutable.");
+	}
+
+	/**
+	 * Always throws a BadMethodCallException since Match objects are immutable.
+	 * Defined to meet \ArrayAccess implementation.
+	 *
+	 * @param  string  $key
+	 * @return void
+	 * @throws \BadMethodCallException
+	 */
+	public function offsetUnset($key)
+	{
+		$type = get_class($this);
+		throw new BadMethodCallException("Error unsetting offset '{$key}'. {$type} are immutable.");
 	}
 
 }

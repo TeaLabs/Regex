@@ -4,11 +4,14 @@ namespace Tea\Regex\Result;
 use Exception;
 use ArrayIterator;
 use Tea\Regex\Helpers;
-use BadMethodCallException;
 use Tea\Regex\Exception\GroupDoesNotExist;
 use Tea\Regex\Exception\InvalidGroupIndex;
 use Tea\Regex\Exception\NamedGroupDoesntExist;
 
+/**
+ *
+ * @todo Add support of PREG_* flags and how they affect the results' nature.
+*/
 class Matches extends Result
 {
 	/**
@@ -64,6 +67,16 @@ class Matches extends Result
 	}
 
 	/**
+	 * Determine if there was any match.
+	 *
+	 * @return bool
+	 */
+	public function hasMatch()
+	{
+		return $this->hasMatch;
+	}
+
+	/**
 	 * @return string|null
 	 */
 	public function result()
@@ -90,23 +103,20 @@ class Matches extends Result
 	 *
 	 * @return string|array
 	 *
-	 * @throws Tea\Regex\Exception\GroupDoesNotExist If $orError is TRUE.
-	 * @throws Tea\Regex\Exception\InvalidGroupIndex If $orError is TRUE.
+	 * @uses   \Tea\Regex\Result\Matches::has()
+	 * @throws \Tea\Regex\Exception\InvalidGroupIndex
+	 * @throws \Tea\Regex\Exception\GroupDoesNotExist If $orError is TRUE.
 	 */
 	public function get($key = null, $default = null, $orError = false)
 	{
 		if(is_null($key))
 			return $this->indexedGroups();
 
-		if(Helpers::isStringable($key) && $this->has($key))
+		if($this->has($key))
 			return $this->allGroups[(string) $key];
 
-		if($orError){
-			if(!Helpers::isStringable($key))
-				throw InvalidGroupIndex::create($this->pattern, $this->subject, $key);
-			else
-				throw GroupDoesNotExist::create($this->pattern, $this->subject, $key);
-		}
+		if($orError)
+			throw GroupDoesNotExist::create($this->pattern, $this->subject, $key);
 
 		return Helpers::value($default);
 	}
@@ -220,6 +230,8 @@ class Matches extends Result
 	 *
 	 * @param  string  $key
 	 * @return bool
+	 *
+	 * @throws Tea\Regex\Exception\InvalidGroupIndex
 	 */
 	public function has($key)
 	{
@@ -249,35 +261,6 @@ class Matches extends Result
 	public function offsetGet($key)
 	{
 		return $this->get($key, null, true);
-	}
-
-	/**
-	 * Always throws a BadMethodCallException since Match objects are immutable.
-	 * Defined to meet \ArrayAccess implementation.
-	 *
-	 * @param  string|int  $key
-	 * @param  mixed  $value
-	 * @return void
-	 * @throws \BadMethodCallException
-	 */
-	public function offsetSet($key, $value)
-	{
-		$type = get_class($this);
-		throw new BadMethodCallException("Error setting offset '{$key}'. {$type} are immutable.");
-	}
-
-	/**
-	 * Always throws a BadMethodCallException since Match objects are immutable.
-	 * Defined to meet \ArrayAccess implementation.
-	 *
-	 * @param  string  $key
-	 * @return void
-	 * @throws \BadMethodCallException
-	 */
-	public function offsetUnset($key)
-	{
-		$type = get_class($this);
-		throw new BadMethodCallException("Error unsetting offset '{$key}'. {$type} are immutable.");
 	}
 
 	/**

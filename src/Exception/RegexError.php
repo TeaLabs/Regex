@@ -18,10 +18,10 @@ class RegexError extends Exception
 
 	protected static function formatObject($object)
 	{
-		$type = is_object($object) ? get_class($object) : gettype($object);
+		$type = is_object($object) ? get_class($object) : ucfirst(gettype($object));
 
 		if(Helpers::isNoneStringIterable($object))
-			$value = ' [' . static::trimString(Helpers::implodeIterable($object, true, null, '', '')) .']';
+			$value = ' [' . static::trimString(Helpers::implodeIterable($object, false, null, '', '')) .']';
 		elseif(Helpers::isStringable($object))
 			$value = " " . static::trimString((string) $object);
 		else

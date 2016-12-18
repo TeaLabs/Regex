@@ -6,11 +6,10 @@ namespace Tea\Regex;
 */
 class RegularExpression
 {
-
 	/**
 	 * @var string
 	 */
-	protected $pattern;
+	protected $body;
 
 	/**
 	 * @var string
@@ -20,95 +19,236 @@ class RegularExpression
 	/**
 	 * @var string
 	 */
-	protected $dilimiter;
+	protected $delimiter;
 
 	/**
 	 * Instantiate the Regular Expression instance.
 	 *
-	 * @param  string   $pattern
-	 * @param  string|null   $modifiers
+	 * @param  string              $body
+	 * @param  string|null|false   $modifiers
+	 * @param  string|null         $delimiter
 	 * @return void
 	 */
-	public function __construct($pattern, $modifiers = null)
+	public function __construct($body, $modifiers = null, $delimiter = null)
 	{
-		$this->pattern = $pattern;
-		$this->modifiers = is_null($modifiers) ? Config::modifiers() : $modifiers;
-		$this->dilimiter = Config::delimiter();
+		$this->body = $body;
+		$this->modifiers = $modifiers === false ? '' : ($modifiers ?: Config::modifiers());
+		$this->delimiter = $delimiter ?: Config::delimiter();
+	}
+
+	/**
+	 * Create a Regular Expression instance.
+	 *
+	 * @param  string              $body
+	 * @param  string|null|false   $modifiers
+	 * @param  string|null         $delimiter
+	 * @return static
+	 */
+	public static function create($body, $modifiers = null, $delimiter = null)
+	{
+		return new static($body, $modifiers, $delimiter);
+	}
+
+	/**
+	 * Create a Regular Expression instance from a possibly complete regex string.
+	 * The given regex string will be parsed to extract the delimiter and modifiers
+	 * if any, and the regex body. If either the delimiter or modifiers are missing,
+	 * the defaults (as set in \Tea\Regex\Config) will be used.
+	 *
+	 * @param string   $pattern
+	 * @return static
+	 */
+	public static function parse($pattern)
+	{
+		$pattern = Adapter::parsePattern($pattern);
+		return new static($pattern->body, $pattern->modifiers, $pattern->delimiter);
+	}
+
+
+	/**
+	 * Filter the given input and return only the entries that match the pattern.
+	 * If invert is passed as TRUE, the elements of the input that do not match
+	 * the given pattern will be returned.
+	 *
+	 * @see   \Tea\Regex\Adapter::filter()
+	 *
+	 * @param  array   $input
+	 * @param  bool    $invert
+	 *
+	 * @return array
+	 *
+	 * @throws \Tea\Regex\Exception\FilterError
+	*/
+	public function filter(array $input, $invert = false)
+	{
+		return Adapter::filter($this, $input, $invert);
 	}
 
 	/**
 	 * Determine if the given string matches the given regex pattern.
 	 *
-	 * @uses preg_match()
+	 * @see  \Tea\Regex\Adapter::is()
 	 *
-	 * @param  string $pattern
-	 * @param  mixed $subject
-	 * @param  int $flags
-	 * @param  int $offset
+	 * @param string $subject
+	 * @param int $offset
+	 * @param int $flags
+	 *
 	 * @return bool
+	 *
+	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function is($pattern, $subject, $flags =0, $offset = 0)
+	public function is($subject, $offset = 0, $flags =0)
 	{
-		$matches = null;
-		return (bool) preg_match(static::addModifiers($pattern), $subject, $matches, $flags, $offset);
+		return Adapter::is($this, $subject, $offset, $flags);
 	}
 
-
 	/**
+	 * Perform a regular expression match on given subject.
+	 *
+	 * @see  \Tea\Regex\Adapter::match()
+	 *
 	 * @param string $subject
-	 * @param int $flags
 	 * @param int $offset
+	 * @param int $flags
 	 *
-	 * @return \Tea\Regex\MatchResult
+	 * @return \Tea\Regex\Result\Matches
+	 *
+	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function match($subject, $flags = 0, $offset = 0)
+	public function match($subject, $offset = 0, $flags = 0)
 	{
-		return MatchResult::for($this, $subject, $flags, $offset);
+		return Adapter::match($this, $subject, $offset, $flags);
 	}
 
 	/**
+	 * Perform a global regular expression match on given subject.
+	 *
+	 * @see  \Tea\Regex\Adapter::matchAll()
+	 *
 	 * @param string $subject
-	 * @param int $flags
 	 * @param int $offset
+	 * @param int $flags
 	 *
-	 * @return \Tea\Regex\MatchAllResult
+	 * @return \Tea\Regex\Result\Matches
+	 *
+	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function matchAll($subject, $flags = 0, $offset = 0)
+	public function matchAll($subject, $offset = 0, $flags = 0)
 	{
-		return MatchAllResult::for($this, $subject, $flags, $offset);
+		return Adapter::matchAll($this, $subject, $offset, $flags);
 	}
 
 	/**
-	 * @param string|callable $replacement
-	 * @param string          $subject
-	 * @param int             $limit
+	 * Determine if the given string matches the given regex pattern.
 	 *
-	 * @return \Tea\Regex\ReplaceResult
+	 * @see  \Tea\Regex\Adapter::matches()
+	 *
+	 * @param string $subject
+	 * @param int $offset
+	 * @param int $flags
+	 *
+	 * @return bool
+	 *
+	 * @throws \Tea\Regex\Exception\MatchError
+	 */
+	public function matches($subject, $offset = 0, $flags =0)
+	{
+		return Adapter::matches($this, $subject, $offset, $flags);
+	}
+
+	/**
+	 * Perform a regular expression search and replace.
+	 *
+	 * @see  \Tea\Regex\Adapter::replace()
+	 *
+	 * @param string|array|\Closure  $replacement
+	 * @param string|array           $subject
+	 * @param int                    $limit
+	 *
+	 * @return \Tea\Regex\Result\Replacement
+	 *
+	 * @throws \Tea\Regex\Exception\ReplacementError
 	 */
 	public function replace($replacement, $subject, $limit = -1)
 	{
-		try {
-			list($result, $count) = is_callable($replacement) ?
-				static::doReplacementWithCallable($pattern, $replacement, $subject, $limit) :
-				static::doReplacement($pattern, $replacement, $subject, $limit);
-		} catch (Exception $exception) {
-			throw RegexFailed::replace($pattern, $subject, $exception->getMessage());
-		}
-
-		if ($result === null) {
-			throw RegexFailed::replace($pattern, $subject, static::lastPregError());
-		}
-
-		return ReplaceResult::for($this, $replacement, $subject, $limit);
+		return Adapter::replace($this, $replacement, $subject, $limit);
 	}
 
 	/**
-	 * Get the regex pattern string.
+	 * Perform a regular expression search and replace using a callback.
+	 *
+	 * @see  \Tea\Regex\Adapter::replaceCallback()
+	 *
+	 * @param callable        $callback
+	 * @param string|array    $subject
+	 * @param int             $limit
+	 *
+	 * @return \Tea\Regex\Result\Replacement
+	 *
+	 * @throws \Tea\Regex\Exception\ReplacementError
+	 */
+	public function replaceCallback(callable $callback, $subject, $limit = -1)
+	{
+		return Adapter::replaceCallback($this, $callback, $subject, $limit);
+	}
+
+	/**
+	 * Perform a regex search and replace. Identical to Adapter::replace()
+	 * except it only returns the (possibly transformed) subjects where there
+	 * was a match. Returns NULL if no matches are found regardless of whether
+	 * the subject was a string or array.
+	 *
+	 * @see  \Tea\Regex\Adapter::replaced()
+	 *
+	 * @param string|array           $replacement
+	 * @param string|array           $subject
+	 * @param int                    $limit
+	 *
+	 * @return \Tea\Regex\Result\Replacement|null
+	 *
+	 * @throws \Tea\Regex\Exception\ReplacementError
+	*/
+	public function replaced($replacement, $subject, $limit = -1)
+	{
+		return Adapter::replaced($this, $replacement, $subject, $limit);
+	}
+
+	/**
+	 * Split string using a regular expression. Returns an array containing
+	 * substrings of subject split along boundaries matched by pattern.
+	 *
+	 * @see  \Tea\Regex\Adapter::split()
+	 *
+	 * @param  string $subject
+	 * @param  int $limit
+	 * @param  int $flags
+	 * @return array
+	 *
+	 * @throws \Tea\Regex\Exception\SplitError
+	*/
+	public function split($subject, $limit=-1, $flags =0)
+	{
+		return Adapter::split($this, $subject, $limit, $flags);
+	}
+
+
+	/**
+	 * Get the full regular expression string.
+	 *
+	 * @return string
+	 */
+	public function pattern()
+	{
+		return $this->delimiter.$this->body.$this->delimiter.$this->modifiers;
+	}
+
+	/**
+	 * Cast the Regular Expression object to a string.
 	 *
 	 * @return string
 	 */
 	public function __toString()
 	{
-		return $this->dilimiter.$this->pattern.$this->dilimiter.$this->modifiers;
+		return $this->pattern();
 	}
 }

@@ -153,6 +153,18 @@ class MatchesTest extends TestCase
 		$this->assertEquals($expected, $actual);
 	}
 
+	/**
+	 * @dataProvider anyProvider()
+	 */
+	public function testHasMatch($expected, $pattern, $subject, $globalMatch = false)
+	{
+		$matches = $this->match($pattern, $subject, $globalMatch);
+		$this->assertIsMatches($matches);
+		$actual = $matches->hasMatch();
+		$this->assertInternalType('boolean', $actual);
+		$this->assertEquals($expected, $actual);
+	}
+
 
 
 	public function indexedGroupsProvider()
@@ -465,7 +477,7 @@ class MatchesTest extends TestCase
 	{
 		$matches = $this->match($pattern, $subject, false);
 		$this->assertIsMatches($matches);
-		$matches->get($key, null, true);
+		$matches->get($key);
 	}
 
 
