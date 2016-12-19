@@ -175,11 +175,11 @@ class RegularExpressionTest extends TestCase
 			],
 			[
 				[
-					'/(?:(?:[A-Za-z]){0,2})(?:(?:(?:\d)){1,})/u',
-					'u',
+					'/(?:(?:[A-Za-z]){0,2})(?:(?:(?:\d)){1,})/uis',
+					'uis',
 					'/'
 				],
-				(new Builder('/', 'u'))->max(2)
+				(new Builder('/', 'uis'))->max(2)
 					->letters()
 					->min(1)
 					->digits()
@@ -305,11 +305,11 @@ class RegularExpressionTest extends TestCase
 	/**
 	 * @dataProvider matchProvider()
 	 */
-	public function testMatch($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatch($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$matches = $regex->match($subject, $offset, $flags);
+		$matches = $regex->match($subject, $flags, $offset);
 		$this->assertInstanceOfMatches($matches);
 		$this->assertEquals($expected, $matches->result());
 	}
@@ -341,11 +341,11 @@ class RegularExpressionTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchThrowsMatchError($pattern, $subject)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$regex->match($subject, $offset, $flags);
+		$regex->match($subject);
 	}
 
 
@@ -392,11 +392,11 @@ class RegularExpressionTest extends TestCase
 	/**
 	 * @dataProvider matchAllProvider()
 	 */
-	public function testMatchAll($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchAll($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$matches = $regex->matchAll($subject, $offset, $flags);
+		$matches = $regex->matchAll($subject, $flags, $offset);
 		$this->assertInstanceOfMatches($matches);
 		$this->assertEquals($expected, $matches->result());
 	}
@@ -428,11 +428,11 @@ class RegularExpressionTest extends TestCase
 	 * @dataProvider matchAllThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchAllThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchAllThrowsMatchError($pattern, $subject)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$regex->matchAll($subject, $offset, $flags);
+		$regex->matchAll($subject);
 	}
 
 	public function matchesProvider()
@@ -464,11 +464,11 @@ class RegularExpressionTest extends TestCase
 	/**
 	 * @dataProvider matchesProvider()
 	 */
-	public function testMatches($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatches($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$result = $regex->matches($subject, $offset, $flags);
+		$result = $regex->matches($subject, $flags, $offset);
 		$this->assertInternalType('boolean', $result);
 		$this->assertEquals($expected, $result);
 	}
@@ -478,21 +478,21 @@ class RegularExpressionTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchesThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchesThrowsMatchError($pattern, $subject)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$result = $regex->matches($subject, $offset, $flags);
+		$result = $regex->matches($subject);
 	}
 
 	/**
 	 * @dataProvider matchesProvider()
 	 */
-	public function testIs($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testIs($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$result = $regex->is($subject, $offset, $flags);
+		$result = $regex->is($subject, $flags, $offset);
 		$this->assertInternalType('boolean', $result);
 		$this->assertEquals($expected, $result);
 	}
@@ -502,11 +502,11 @@ class RegularExpressionTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testIsThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testIsThrowsMatchError($pattern, $subject)
 	{
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
-		$result = $regex->matches($subject, $offset, $flags);
+		$result = $regex->matches($subject);
 	}
 
 

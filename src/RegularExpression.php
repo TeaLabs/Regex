@@ -64,16 +64,16 @@ class RegularExpression implements Pattern
 	 * @see  \Tea\Regex\Adapter::is()
 	 *
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return bool
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function is($subject, $offset = 0, $flags =0)
+	public function is($subject, $flags =0, $offset = 0)
 	{
-		return Adapter::is($this, $subject, $offset, $flags);
+		return Adapter::is($this, $subject, $flags, $offset);
 	}
 
 	/**
@@ -82,16 +82,16 @@ class RegularExpression implements Pattern
 	 * @see  \Tea\Regex\Adapter::match()
 	 *
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return \Tea\Regex\Result\Matches
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function match($subject, $offset = 0, $flags = 0)
+	public function match($subject, $flags = 0, $offset = 0)
 	{
-		return Adapter::match($this, $subject, $offset, $flags);
+		return Adapter::match($this, $subject, $flags, $offset);
 	}
 
 	/**
@@ -100,16 +100,16 @@ class RegularExpression implements Pattern
 	 * @see  \Tea\Regex\Adapter::matchAll()
 	 *
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return \Tea\Regex\Result\Matches
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function matchAll($subject, $offset = 0, $flags = 0)
+	public function matchAll($subject, $flags = 0, $offset = 0)
 	{
-		return Adapter::matchAll($this, $subject, $offset, $flags);
+		return Adapter::matchAll($this, $subject, $flags, $offset);
 	}
 
 	/**
@@ -118,16 +118,16 @@ class RegularExpression implements Pattern
 	 * @see  \Tea\Regex\Adapter::matches()
 	 *
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return bool
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public function matches($subject, $offset = 0, $flags =0)
+	public function matches($subject, $flags =0, $offset = 0)
 	{
-		return Adapter::matches($this, $subject, $offset, $flags);
+		return Adapter::matches($this, $subject, $flags, $offset);
 	}
 
 	/**

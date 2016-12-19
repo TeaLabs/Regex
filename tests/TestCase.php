@@ -20,4 +20,42 @@ abstract class TestCase extends BaseTestCase
 		static::$_empties ++;
 	}
 
+
+	/**
+	 * Asserts that a variable is of a RegularExpression instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertIsRegularExpression($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\RegularExpression', $object);
+	}
+
+	/**
+	 * Asserts that a variable is of a Matches instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertInstanceOfMatches($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\Result\Matches', $object);
+	}
+
+
+	/**
+	 * Asserts that a variable is of a Replacement instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertInstanceOfReplacement($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\Result\Replacement', $object);
+	}
+
+
+	public function assertIsBuilder($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\Builder', $object);
+	}
+
 }

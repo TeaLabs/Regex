@@ -2,7 +2,9 @@
 namespace Tea\Regex\Tests;
 
 use Tea\Regex\Regex;
+use Tea\Regex\Config;
 use Tea\Regex\Builder;
+use Tea\Regex\Modifiers;
 
 class BuilderTest extends TestCase
 {
@@ -11,7 +13,6 @@ class BuilderTest extends TestCase
 	 * @var \Tea\Regex\Builder
 	 */
 	public $r;
-
 
 	public function setUp()
 	{
@@ -25,42 +26,249 @@ class BuilderTest extends TestCase
 
 	public function testCreate()
 	{
-		$this->emptyTest(__METHOD__);
+		$builder = $this->create('#', 'xi')
+				->max(2)->letters()
+				->min(1)->digits();
+
+		$this->assertIsBuilder($builder);
+		$this->assertEquals('(?:(?:[A-Za-z]){0,2})(?:(?:(?:\d)){1,})', $builder->getBody());
+		$this->assertEquals('xi', $builder->getModifiers());
+		$this->assertEquals('#', $builder->getDelimiter());
 	}
 
-	public function testModifiers()
+	public function modifiersProvider()
 	{
-		$this->emptyTest(__METHOD__);
+		return [
+			[
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS
+			],
+			[
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::ANCHORED,
+				[Modifiers::UTF8, Modifiers::CASELESS, Modifiers::DOTALL, Modifiers::ANCHORED],
+				Modifiers::UTF8.Modifiers::CASELESS
+			],
+		];
 	}
 
-	public function testRemoveModifiers()
+	/**
+	 * @dataProvider modifiersProvider()
+	 */
+	public function testModifiers($expected, $modifiers, $inital = null)
 	{
-		$this->emptyTest(__METHOD__);
+		$builder = $this->create(null, $inital)->modifiers($modifiers);
+		$this->assertEquals($expected, $builder->getModifiers());
 	}
 
-	public function testHasModifier()
+
+	public function modifierProvider()
 	{
-		$this->emptyTest(__METHOD__);
+		return [
+			[
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS
+			],
+			[
+				Modifiers::UTF8.Modifiers::DOTALL.Modifiers::CASELESS,
+				Modifiers::CASELESS,
+				Modifiers::UTF8.Modifiers::DOTALL
+			],
+		];
 	}
+
+	/**
+	 * @dataProvider modifierProvider()
+	 */
+	public function testModifier($expected, $modifiers, $inital = null)
+	{
+		$builder = $this->create(null, $inital)->modifier($modifiers);
+		$this->assertEquals($expected, $builder->getModifiers());
+	}
+
+
+	public function removeModifiersProvider()
+	{
+		return [
+			[
+				Modifiers::CASELESS.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				Modifiers::UTF8.Modifiers::DOTALL.Modifiers::MULTILINE,
+				[Modifiers::CASELESS, Modifiers::DOLLAR_ENDONLY, Modifiers::ANCHORED],
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider removeModifiersProvider()
+	 */
+	public function testRemoveModifiers($expected, $remove, $inital)
+	{
+		$builder = $this->create(null, $inital)->removeModifiers($remove);
+		$this->assertEquals($expected, $builder->getModifiers());
+	}
+
+	public function removeModifierProvider()
+	{
+		return [
+			[
+				Modifiers::CASELESS.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				Modifiers::UTF8.Modifiers::DOTALL.Modifiers::MULTILINE,
+				Modifiers::CASELESS,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::MULTILINE,
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider removeModifierProvider()
+	 */
+	public function testRemoveModifier($expected, $remove, $inital)
+	{
+		$builder = $this->create(null, $inital)->removeModifier($remove);
+		$this->assertEquals($expected, $builder->getModifiers());
+	}
+
+	public function hasModifierProvider()
+	{
+		return [
+			[
+				true,
+				Modifiers::UTF8.Modifiers::DOTALL,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				true,
+				Modifiers::CASELESS,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				false,
+				Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL
+				.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+			],
+			[
+				false,
+				Modifiers::DOTALL.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL
+				.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider hasModifierProvider()
+	 */
+	public function testHasModifier($expected, $value, $inital)
+	{
+		$result = $this->create(null, $inital)->hasModifier($value);
+		$this->assertInternalType('boolean', $result);
+		$this->assertEquals($expected, $result);
+	}
+
+	public function hasModifiersProvider()
+	{
+		return [
+			[
+				true,
+				Modifiers::UTF8.Modifiers::DOTALL,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				true,
+				[Modifiers::UTF8, Modifiers::DOTALL],
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				true,
+				Modifiers::CASELESS,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL.Modifiers::DOLLAR_ENDONLY
+				.Modifiers::ANCHORED.Modifiers::MULTILINE,
+			],
+			[
+				true,
+				Modifiers::ANCHORED.Modifiers::DOTALL,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL
+				.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+				true
+			],
+			[
+				false,
+				Modifiers::DOTALL.Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL
+				.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+			],
+			[
+				false,
+				Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL
+				.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+			],
+			[
+				false,
+				Modifiers::ANCHORED,
+				Modifiers::UTF8.Modifiers::CASELESS.Modifiers::DOTALL
+				.Modifiers::DOLLAR_ENDONLY.Modifiers::MULTILINE,
+				true
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider hasModifiersProvider()
+	 */
+	public function testHasModifiers($expected, $value, $inital, $any = false)
+	{
+		$result = $this->create(null, $inital)->hasModifiers($value, $any);
+		$this->assertInternalType('boolean', $result);
+		$this->assertEquals($expected, $result);
+	}
+
 
 	public function testIgnoreCase()
 	{
-		$this->emptyTest(__METHOD__);
+		$builder = $this->create()->ignoreCase();
+		$this->assertTrue($builder->hasModifier(Modifiers::CASELESS));
+		$builder->ignoreCase(false);
+		$this->assertFalse($builder->hasModifier(Modifiers::CASELESS));
 	}
 
 	public function testMultiLine()
 	{
-		$this->emptyTest(__METHOD__);
-	}
-
-	public function testSanitize()
-	{
-		$this->emptyTest(__METHOD__);
+		$builder = $this->create()->multiLine();
+		$this->assertTrue($builder->hasModifier(Modifiers::MULTILINE));
+		$builder->multiLine(false);
+		$this->assertFalse($builder->hasModifier(Modifiers::MULTILINE));
 	}
 
 	public function testCompile()
 	{
-		$this->emptyTest(__METHOD__);
+		$builder = $this->create('/', 'u')
+			->min(1)->max(2)->letters()
+			->max(4)->digits();
+
+		$regex = $builder->compile();
+		$this->assertIsRegularExpression($regex);
+		$this->assertEquals($builder->getBody(), $regex->getBody());
+		$this->assertEquals($builder->getModifiers(), $regex->getModifiers());
+		$this->assertEquals($builder->getDelimiter(), $regex->getDelimiter());
 	}
 
 	/**
@@ -361,12 +569,14 @@ class BuilderTest extends TestCase
 			->startOfLine()
 			->neither($this->r->getNew()->exactly(1)->of("milk"))
 			->nor($this->r->getNew()->exactly(1)->of("juice"))
+			->nor($this->r->getNew()->exactly(1)->of(Config::delimiter()))
 			->compile();
 
 		$this->assertTrue($regEx->matches("beer"));
 
 		$this->assertFalse($regEx->matches("milk"));
 		$this->assertFalse($regEx->matches("juice"));
+		$this->assertFalse($regEx->matches(Config::delimiter()));
 
 	}
 
@@ -474,14 +684,14 @@ class BuilderTest extends TestCase
 
 	public function testTab2()
 	{
-		$regEx = $this->r
+		$regEx = $this->create('%')
 			->startOfLine()
-			->exactly(1)->of("p")
+			->exactly(1)->of("/p%")
 			->tab()
-			->exactly(1)->of("q")
+			->exactly(1)->of("/q%")
 			->compile();
 
-		$this->assertTrue($regEx->matches("p\tq"));
+		$this->assertTrue($regEx->matches("/p%\t/q%"));
 	}
 
 	public function testTabs()

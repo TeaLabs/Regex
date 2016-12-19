@@ -36,7 +36,8 @@ class Builder extends RegExpBuilder implements Pattern
 		$this->delimiter = $delimiter && Config::validateDelimiter($delimiter)
 				? $delimiter : Config::delimiter();
 
-		$this->modifiers((is_null($modifiers) ? Config::modifiers() : $modifiers));
+		$modifiers = is_null($modifiers) ? Config::modifiers() : $modifiers;
+		$this->modifier($modifiers);
 	}
 
 	/**
@@ -51,15 +52,16 @@ class Builder extends RegExpBuilder implements Pattern
 	{
 		$modifiers = Helpers::isNoneStringIterable($modifiers)
 				? $modifiers : str_split((string) $modifiers);
-
+		$new  = '';
 		foreach ($modifiers as $modifier) {
 			$modifier = trim((string) $modifier);
-			if($modifier && strpos($this->modifiers, $modifier) === false)
-				$this->modifiers .= $modifier;
+			if($modifier && !$this->hasModifier($modifier))
+				$new .= $modifier;
 		}
 
-		if($this->modifiers)
-			Modifiers::validate($this->modifiers);
+		if($new && Modifiers::validate($new))
+			$this->modifiers .= $new;
+
 
 		return $this;
 	}
@@ -69,17 +71,18 @@ class Builder extends RegExpBuilder implements Pattern
 	 *
 	 * @see \Tea\Regex\Modifiers  For possible modifiers.
 	 *
-	 * @param string $modifier
+	 * @param  string  $modifier
 	 * @return $this
 	 */
 	public function modifier($modifier)
 	{
 		$modifier = trim((string) $modifier);
-		if($modifier && strpos($this->modifiers, $modifier) === false)
-			$this->modifiers .= $modifier;
 
-		if($this->modifiers)
-			Modifiers::validate($this->modifiers);
+		if(strlen($modifier) > 1)
+			return $this->modifiers($modifier);
+
+		if($modifier && Modifiers::validate($modifier) && !$this->hasModifier($modifier))
+			$this->modifiers .= $modifier;
 
 		return $this;
 	}
@@ -95,6 +98,10 @@ class Builder extends RegExpBuilder implements Pattern
 	public function removeModifier($modifier)
 	{
 		$modifier = trim((string) $modifier);
+
+		if(strlen($modifier) > 1)
+			return $this->removeModifiers($modifier);
+
 		if($modifier)
 			$this->modifiers = str_replace($modifier, '', $this->modifiers);
 
@@ -120,23 +127,44 @@ class Builder extends RegExpBuilder implements Pattern
 	}
 
 	/**
-	 * Determine whether the regex has any of the given modifiers.
+	 * Determine whether the regex has any of the given modifier.
 	 *
 	 * @see \Tea\Regex\Modifiers  For possible modifiers.
 	 *
 	 * @param  string   $modifier
 	 * @return bool
 	 */
-	public function hasModifier($modifiers)
+	public function hasModifier($modifier)
+	{
+		if(strlen($modifier) > 1)
+			return $this->hasModifiers($modifier);
+
+		return strpos($this->modifiers, $modifier) !== false;
+	}
+
+	/**
+	 * Determine whether the regex has all or any of the given modifiers.
+	 * By default, this method checks if the regex has all the given modifiers.
+	 * But accepts an optional $any which if set to TRUE, will return TRUE if
+	 * at least one of the given modifiers is set.
+	 *
+	 * @see \Tea\Regex\Modifiers  For possible modifiers.
+	 *
+	 * @param  string|iterable   $modifiers
+	 * @param  bool              $any
+	 * @return bool
+	 */
+	public function hasModifiers($modifiers, $any = false)
 	{
 		$modifiers = Helpers::isNoneStringIterable($modifiers)
 						? $modifiers : str_split((string) $modifiers);
 
 		foreach ($modifiers as $modifier) {
-			if(strpos($this->modifiers, $modifier) !== false)
-				return true;
+			$has = strpos($this->modifiers, $modifier) !== false;
+			if(($any && $has) || (!$any && !$has))
+				return $has;
 		}
-		return false;
+		return $any ? false : true;
 	}
 
 	/**

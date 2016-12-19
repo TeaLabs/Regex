@@ -60,16 +60,16 @@ class Adapter
 	 *
 	 * @param string $pattern
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return bool
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public static function is($pattern, $subject, $offset = 0, $flags =0)
+	public static function is($pattern, $subject, $flags =0, $offset = 0)
 	{
-		return static::match($pattern, $subject, $offset, $flags)->any();
+		return static::match($pattern, $subject, $flags, $offset)->any();
 	}
 
 
@@ -80,14 +80,14 @@ class Adapter
 	 *
 	 * @param string $pattern
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return \Tea\Regex\Result\Matches
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public static function match($pattern, $subject, $offset = 0, $flags = 0)
+	public static function match($pattern, $subject, $flags = 0, $offset = 0)
 	{
 		try{
 			$result = preg_match($pattern, $subject, $matches, $flags, $offset);
@@ -109,14 +109,14 @@ class Adapter
 	 *
 	 * @param string $pattern
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return \Tea\Regex\Result\Matches
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public static function matchAll($pattern, $subject, $offset = 0, $flags = 0)
+	public static function matchAll($pattern, $subject, $flags = 0, $offset = 0)
 	{
 		try{
 			$result = preg_match_all($pattern, $subject, $matches, $flags, $offset);
@@ -139,16 +139,16 @@ class Adapter
 	 *
 	 * @param string $pattern
 	 * @param string $subject
-	 * @param int $offset
 	 * @param int $flags
+	 * @param int $offset
 	 *
 	 * @return bool
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
-	public static function matches($pattern, $subject, $offset = 0, $flags =0)
+	public static function matches($pattern, $subject, $flags =0, $offset = 0)
 	{
-		return static::match($pattern, $subject, $offset, $flags)->any();
+		return static::match($pattern, $subject, $flags, $offset)->any();
 	}
 
 	/**

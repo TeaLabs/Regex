@@ -8,40 +8,13 @@ use Tea\Regex\Tests\Mocks\StringObject;
 class RegexTest extends TestCase
 {
 
-	/**
-	 * Asserts that a variable is of a RegularExpression instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertIsRegularExpression($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\RegularExpression', $object);
-	}
-
-	/**
-	 * Asserts that a variable is of a Matches instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertInstanceOfMatches($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\Result\Matches', $object);
-	}
-
-
-	/**
-	 * Asserts that a variable is of a Replacement instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertInstanceOfReplacement($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\Result\Replacement', $object);
-	}
-
 	public function testBuilder()
 	{
-		$this->emptyTest(__METHOD__);
+		$builder = Regex::builder('#', 'xi');
+
+		$this->assertIsBuilder($builder);
+		$this->assertEquals('xi', $builder->getModifiers());
+		$this->assertEquals('#', $builder->getDelimiter());
 	}
 
 	public function createProvider()
@@ -329,9 +302,9 @@ class RegexTest extends TestCase
 	/**
 	 * @dataProvider matchProvider()
 	 */
-	public function testMatch($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatch($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$matches = Regex::match($pattern, $subject, $offset, $flags);
+		$matches = Regex::match($pattern, $subject, $flags, $offset);
 		$this->assertInstanceOfMatches($matches);
 		$this->assertEquals($expected, $matches->result());
 	}
@@ -359,9 +332,9 @@ class RegexTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchThrowsMatchError($pattern, $subject)
 	{
-		Regex::match($pattern, $subject, $offset, $flags);
+		Regex::match($pattern, $subject);
 	}
 
 
@@ -408,9 +381,9 @@ class RegexTest extends TestCase
 	/**
 	 * @dataProvider matchAllProvider()
 	 */
-	public function testMatchAll($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchAll($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$matches = Regex::matchAll($pattern, $subject, $offset, $flags);
+		$matches = Regex::matchAll($pattern, $subject, $flags, $offset);
 		$this->assertInstanceOfMatches($matches);
 		$this->assertEquals($expected, $matches->result());
 	}
@@ -442,9 +415,9 @@ class RegexTest extends TestCase
 	 * @dataProvider matchAllThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchAllThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchAllThrowsMatchError($pattern, $subject)
 	{
-		Regex::matchAll($pattern, $subject, $offset, $flags);
+		Regex::matchAll($pattern, $subject);
 	}
 
 	public function matchesProvider()
@@ -476,9 +449,9 @@ class RegexTest extends TestCase
 	/**
 	 * @dataProvider matchesProvider()
 	 */
-	public function testMatches($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatches($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$result = Regex::matches($pattern, $subject, $offset, $flags);
+		$result = Regex::matches($pattern, $subject, $flags, $offset);
 		$this->assertInternalType('boolean', $result);
 		$this->assertEquals($expected, $result);
 	}
@@ -488,17 +461,17 @@ class RegexTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchesThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchesThrowsMatchError($pattern, $subject)
 	{
-		Regex::matches($pattern, $subject, $offset, $flags);
+		Regex::matches($pattern, $subject);
 	}
 
 	/**
 	 * @dataProvider matchesProvider()
 	 */
-	public function testIs($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testIs($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$result = Regex::is($pattern, $subject, $offset, $flags);
+		$result = Regex::is($pattern, $subject, $flags, $offset);
 		$this->assertInternalType('boolean', $result);
 		$this->assertEquals($expected, $result);
 	}
@@ -508,9 +481,9 @@ class RegexTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testIsThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testIsThrowsMatchError($pattern, $subject)
 	{
-		Regex::is($pattern, $subject, $offset, $flags);
+		Regex::is($pattern, $subject);
 	}
 
 

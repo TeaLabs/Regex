@@ -13,7 +13,7 @@ namespace Tea\Regex;
  */
 function re($pattern = null, $modifiers = null)
 {
-	return Helpers::re($pattern, $modifiers);
+	return RegularExpression::create($body, $modifiers, $delimiter);
 }
 
 

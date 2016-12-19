@@ -7,27 +7,6 @@ use Tea\Regex\Tests\Mocks\StringObject;
 class AdapterTest extends TestCase
 {
 
-	/**
-	 * Asserts that a variable is of a Matches instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertInstanceOfMatches($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\Result\Matches', $object);
-	}
-
-
-	/**
-	 * Asserts that a variable is of a Replacement instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertInstanceOfReplacement($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\Result\Replacement', $object);
-	}
-
 	public function filterProvider()
 	{
 		return [
@@ -131,9 +110,9 @@ class AdapterTest extends TestCase
 	/**
 	 * @dataProvider matchProvider()
 	 */
-	public function testMatch($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatch($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$matches = Adapter::match($pattern, $subject, $offset, $flags);
+		$matches = Adapter::match($pattern, $subject, $flags, $offset);
 		$this->assertInstanceOfMatches($matches);
 		$this->assertEquals($expected, $matches->result());
 	}
@@ -169,9 +148,9 @@ class AdapterTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchThrowsMatchError($pattern, $subject)
 	{
-		Adapter::match($pattern, $subject, $offset, $flags);
+		Adapter::match($pattern, $subject);
 	}
 
 
@@ -218,9 +197,9 @@ class AdapterTest extends TestCase
 	/**
 	 * @dataProvider matchAllProvider()
 	 */
-	public function testMatchAll($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchAll($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$matches = Adapter::matchAll($pattern, $subject, $offset, $flags);
+		$matches = Adapter::matchAll($pattern, $subject, $flags, $offset);
 		$this->assertInstanceOfMatches($matches);
 		$this->assertEquals($expected, $matches->result());
 	}
@@ -256,9 +235,9 @@ class AdapterTest extends TestCase
 	 * @dataProvider matchAllThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchAllThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchAllThrowsMatchError($pattern, $subject)
 	{
-		Adapter::matchAll($pattern, $subject, $offset, $flags);
+		Adapter::matchAll($pattern, $subject);
 	}
 
 	public function matchesProvider()
@@ -290,9 +269,9 @@ class AdapterTest extends TestCase
 	/**
 	 * @dataProvider matchesProvider()
 	 */
-	public function testMatches($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatches($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$result = Adapter::matches($pattern, $subject, $offset, $flags);
+		$result = Adapter::matches($pattern, $subject, $flags, $offset);
 		$this->assertInternalType('boolean', $result);
 		$this->assertEquals($expected, $result);
 	}
@@ -302,17 +281,17 @@ class AdapterTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testMatchesThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testMatchesThrowsMatchError($pattern, $subject)
 	{
-		Adapter::matches($pattern, $subject, $offset, $flags);
+		Adapter::matches($pattern, $subject);
 	}
 
 	/**
 	 * @dataProvider matchesProvider()
 	 */
-	public function testIs($expected, $pattern, $subject, $offset = 0, $flags = 0)
+	public function testIs($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
-		$result = Adapter::is($pattern, $subject, $offset, $flags);
+		$result = Adapter::is($pattern, $subject, $flags, $offset);
 		$this->assertInternalType('boolean', $result);
 		$this->assertEquals($expected, $result);
 	}
@@ -322,9 +301,9 @@ class AdapterTest extends TestCase
 	 * @dataProvider matchThrowsMatchErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	public function testIsThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
+	public function testIsThrowsMatchError($pattern, $subject)
 	{
-		Adapter::is($pattern, $subject, $offset, $flags);
+		Adapter::is($pattern, $subject);
 	}
 
 
