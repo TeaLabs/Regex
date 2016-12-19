@@ -1,7 +1,7 @@
 <?php
 namespace Tea\Regex\Exception;
 
-use Tea\Regex;
+use Tea\Regex\Helpers;
 use UnexpectedValueException;
 
 class InvalidDelimiterException extends UnexpectedValueException
@@ -10,7 +10,7 @@ class InvalidDelimiterException extends UnexpectedValueException
 	{
 		if(is_null($message)){
 			if($value != ''){
-				if(Regex\is_stringable($value))
+				if(Helpers::isStringable($value))
 					$value = "'{$value}' ";
 				elseif(is_object($value))
 					$value = "'".get_class($value)."' ";

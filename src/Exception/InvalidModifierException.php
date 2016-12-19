@@ -10,7 +10,7 @@ class InvalidModifierException extends UnexpectedValueException
 	{
 		if(is_null($message)){
 			if($value != ''){
-				if(Regex\is_stringable($value))
+				if(Helpers::isStringable($value))
 					$value = "'{$value}' ";
 				elseif(is_object($value))
 					$value = "'".get_class($value)."' ";
