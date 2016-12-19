@@ -1,7 +1,7 @@
 <?php
 namespace Tea\Regex\Exception;
 
-use Tea\Regex;
+use Tea\Regex\Helpers;
 use UnexpectedValueException;
 
 class InvalidModifierException extends UnexpectedValueException
