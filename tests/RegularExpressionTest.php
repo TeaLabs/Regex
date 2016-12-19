@@ -2,6 +2,7 @@
 namespace Tea\Regex\Tests;
 
 use Tea\Regex\Config;
+use Tea\Regex\Builder;
 use Tea\Regex\RegularExpression;
 use Tea\Regex\Tests\Mocks\StringObject;
 
@@ -29,7 +30,7 @@ class RegularExpressionTest extends TestCase
 
 
 	/**
-	 * Asserts that a variable is of a Matches instance.
+	 * Asserts that a variable is of a Replacement instance.
 	 *
 	 * @param mixed $object
 	 */
@@ -171,6 +172,17 @@ class RegularExpressionTest extends TestCase
 					'/'
 				],
 				$this->create('^\+254\d{9}$', 'ix', '/')
+			],
+			[
+				[
+					'/(?:(?:[A-Za-z]){0,2})(?:(?:(?:\d)){1,})/u',
+					'u',
+					'/'
+				],
+				(new Builder('/', 'u'))->max(2)
+					->letters()
+					->min(1)
+					->digits()
 			],
 		];
 	}

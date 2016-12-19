@@ -156,24 +156,35 @@ class Modifiers
 	}
 
 	/**
-	 * Determine if the given value consists of only valid modifiers. If optional
-	 * orException is passed and it's TRUE, an InvalidModifierException will be
-	 * thrown if the value fails the test.
+	 * Determine if the given value consists of only valid modifiers. Returns
+	 * FALSE if the string contains invalid modifier character(s).
 	 *
-	 * @param  string $value
-	 * @param  bool   $orException
+	 * @param  string $modifiers
+	 * @return bool
+	*/
+	public static function isValid($modifiers)
+	{
+		return static::validate($modifiers, true);
+	}
+
+	/**
+	 * Determine if the given value consists of only valid modifiers. Unless
+	 * silent is set to TRUE, an InvalidModifierException is thrown in the case
+	 * of an invalid modifier. Returns false otherwise.
+	 *
+	 * @param  string $modifiers
+	 * @param  bool   $silent
 	 * @return bool
 	 *
 	 * @throws \Tea\Regex\Exception\InvalidModifierException
 	*/
-	public static function isValid($value, $orException = false)
+	public static function validate($modifiers, $silent = false)
 	{
-		if(0 === preg_match('/([^'.self::ALL.']+)/u', $value))
+		if(0 === preg_match('/([^'.self::ALL.'])/u', $modifiers))
 			return true;
 
-		if(!$orException)
-			return false;
+		if($silent)	return false;
 
-		throw new InvalidModifierException($value);
+		throw new InvalidModifierException($modifiers);
 	}
 }

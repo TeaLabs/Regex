@@ -152,6 +152,37 @@ class Adapter
 	}
 
 	/**
+	 * Quote (escape) regular expression characters and the delimiter in string.
+	 * If not passed, the default delimiter {@see Tea\Regex\Config::delimiter()}
+	 * will be quoted. FALSE can be passed as the delimiter to prevent any
+	 * delimiter including the default from being quoted.
+	 *
+	 * @uses preg_quote()
+	 *
+	 * @param  string            $value
+	 * @param  string|null|false $delimiter
+	 * @return string
+	*/
+	public static function quote($value, $delimiter = null)
+	{
+		if(empty($value))
+			return $value;
+
+		$delimiter = $delimiter === false ? null : ($delimiter ?: Config::delimiter());
+
+		if(Helpers::isNoneStringIterable($value)){
+			$results = [];
+			foreach ($value as $k => $v) {
+				$results[$k] = preg_quote( (string) $v, $delimiter);
+			}
+			return $results;
+		}
+
+		return preg_quote( (string) $value, $delimiter);
+	}
+
+
+	/**
 	 * Perform a regular expression search and replace
 	 *
 	 * @param string|array           $pattern

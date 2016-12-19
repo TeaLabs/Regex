@@ -1,10 +1,11 @@
 <?php
 namespace Tea\Regex;
 
+use Tea\Regex\Contracts\Pattern;
 /**
 *
 */
-class RegularExpression
+class RegularExpression implements Pattern
 {
 	/**
 	 * @var string
@@ -23,6 +24,8 @@ class RegularExpression
 
 	/**
 	 * Instantiate the RegularExpression instance.
+	 * If either the modifiers and/or the delimiter are not provided, the defaults
+	 * {@see \Tea\Regex\Config} will be used.
 	 *
 	 * @param  string              $body
 	 * @param  string|null|false   $modifiers
@@ -233,7 +236,7 @@ class RegularExpression
 	}
 
 	/**
-	 * Cast the Regular Expression object to a string.
+	 * Cast the Regular Expression object to string.
 	 *
 	 * @return string
 	 */
@@ -245,9 +248,10 @@ class RegularExpression
 				.$this->getModifiers();
 	}
 
-
 	/**
 	 * Create a RegularExpression instance.
+	 * If either the modifiers and/or the delimiter are not provided, the defaults
+	 * {@see \Tea\Regex\Config} will be used.
 	 *
 	 * @param  string              $body
 	 * @param  string|null|false   $modifiers
@@ -261,34 +265,47 @@ class RegularExpression
 
 	/**
 	 * Create a RegularExpression instance from a possibly complete regex string
-	 * or another RegularExpression instance.
-	 * If the given pattern is string it will be parsed to extract the delimiter
-	 * and modifiers if any, and the regex body. If either the delimiter or
-	 * modifiers are missing, the defaults (as set in \Tea\Regex\Config) will
-	 * be used.
+	 * or a {@see \Tea\Regex\Contracts\Pattern} instance.
+	 * If the given pattern is string it will be parsed to extract the regex body,
+	 * modifiers and the delimiter if any.
 	 *
-	 * @param  string|\Tea\Regex\RegularExpression  $pattern
+	 * If either the modifiers and/or delimiter are neither set on the pattern
+	 * nor passed as arguments, the defaults {@see \Tea\Regex\Config} will be used.
+	 * Modifiers and/or the delimiter passed as arguments will be used instead
+	 * of those set on the pattern
+	 *
+	 * @uses \Tea\Regex\RegularExpression::fromInstance()
+	 * @uses \Tea\Regex\RegularExpression::fromString()
+	 *
+	 * @param  string|\Tea\Regex\Contracts\Pattern  $pattern
 	 * @param  string|null|false                    $modifiers
 	 * @param  string|null                          $delimiter
+	 *
 	 * @return static
 	 */
 	public static function from($pattern, $modifiers = null, $delimiter = null)
 	{
-		if($pattern instanceof self)
+		if($pattern instanceof Pattern)
 			return static::fromInstance($pattern, $modifiers, $delimiter);
 		else
 			return static::fromString($pattern, $modifiers, $delimiter);
 	}
 
 	/**
-	 * Create a RegularExpression instance from another RegularExpression instance.
+	 * Create a RegularExpression instance from a
+	 * {@see \Tea\Regex\Contracts\Pattern} instance.
+	 * If either the modifiers and/or delimiter are neither set on the pattern
+	 * nor passed as arguments, the defaults {@see \Tea\Regex\Config} will be used.
+	 * Modifiers and/or the delimiter passed as arguments will be used instead
+	 * of those set on the pattern.
 	 *
-	 * @param  \Tea\Regex\RegularExpression  $pattern
+	 * @param  \Tea\Regex\Contracts\Pattern  $pattern
 	 * @param  string|null|false             $modifiers
 	 * @param  string|null                   $delimiter
+	 *
 	 * @return static
 	 */
-	public static function fromInstance(RegularExpression $pattern, $modifiers = null, $delimiter = null)
+	public static function fromInstance(Pattern $pattern, $modifiers = null, $delimiter = null)
 	{
 		$modifiers = is_null($modifiers)
 			? ($pattern->getModifiers() === null ? false : $pattern->getModifiers()) : $modifiers;
@@ -299,11 +316,19 @@ class RegularExpression
 
 	/**
 	 * Create a RegularExpression instance from a possibly complete regex string.
-	 * The given regex string will be parsed to extract the delimiter and modifiers
-	 * if any, and the regex body. If either the delimiter or modifiers are missing,
-	 * the defaults (as set in \Tea\Regex\Config) will be used.
+	 * The given regex string will be parsed to extract the regex body, modifiers
+	 * and the delimiter if any.
+	 * If either the modifiers and/or delimiter are neither set on the pattern
+	 * nor passed as arguments, the defaults {@see \Tea\Regex\Config} will be used.
+	 * Modifiers and/or the delimiter passed as arguments will be used instead
+	 * of those set on the pattern.
 	 *
-	 * @param  string  $pattern
+	 * @uses \Tea\Regex\Adapter::parsePattern()
+	 *
+	 * @param  string              $pattern
+	 * @param  string|null|false   $modifiers
+	 * @param  string|null         $delimiter
+	 *
 	 * @return static
 	 */
 	public static function fromString($pattern, $modifiers = null, $delimiter = null)

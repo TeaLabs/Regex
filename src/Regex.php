@@ -1,6 +1,11 @@
 <?php
 namespace Tea\Regex;
 
+use TypeError;
+use ReflectionClass;
+use ReflectionMethod;
+use BadMethodCallException;
+
 /**
 *
 */
@@ -8,173 +13,136 @@ class Regex
 {
 
 	/**
-	 * @var string
-	 */
-	protected $pattern;
-
-
-	/**
-	 * Instantiate the Regex instance.
-	 *
-	 * @param  string   $pattern
-	 * @return void
-	 */
-	public function __construct($pattern)
-	{
-		$this->pattern = $pattern;
-	}
-
-	/**
-	 * Create a new Builder instance. Accepts an optional pattern from which
-	 * the builder can be created. The pattern can be another Builder instance
-	 * or a raw regex string.
-	 * Throws a InvalidRegexPatternException if the given pattern is not a Builder
-	 * instance and can't be converted to string.
-	 *
-	 * @see   \Tea\Regex\Builder::build()
-	 * @uses  \Tea\Regex\Builder::build()
-	 * @param  string|\Tea\Regex\Builder|null   $pattern
-	 * @param  string|null                      $modifiers
-	 * @return \Tea\Regex\Builder
-	 *
-	 * @throws \Tea\Regex\Exception\InvalidRegexPatternException
-	 */
-	public static function build($pattern = null, $modifiers = null)
-	{
-		return Builder::build($pattern, $modifiers);
-	}
-
-	/**
-	 * @param  string  $pattern
-	 * @param  string|null  $modifiers
-	 * @return \Tea\Regex\RegularExpression
-	 */
-	public static function create($pattern, $modifiers = null)
-	{
-		return new RegularExpression($pattern, $modifiers);
-	}
-
-	/**
-	 * @param  string  $pattern
-	 * @param  string|null  $modifiers
-	 * @return \Tea\Regex\RegularExpression
-	 */
-	public static function compile($pattern, $modifiers = null)
-	{
-		if($pattern instanceof RegularExpression)
-			return $pattern;
-		elseif ($pattern instanceof Builder)
-			return $modifiers ? $pattern->modifiers($modifiers)->compile() : $pattern->compile();
-		elseif(is_stringable($pattern))
-			return static::build($pattern, $modifiers)->compile();
-		elseif(is_iterable($pattern))
-			return static::compileAll($pattern, $modifiers);
-		else
-			return static::build($pattern, $modifiers)->compile();
-	}
-
-	/**
-	 * @param  iterable  $pattern
-	 * @param  string|null  $modifiers
-	 * @return array
-	 */
-	public static function compileAll($patterns, $modifiers = null)
-	{
-		$compiled = [];
-		foreach ($patterns as $pattern)
-			$compiled[] = static::compile($pattern);
-
-		return $compiled;
-	}
-
-	/**
-	 * Determine if the given string matches the given regex pattern.
-	 *
-	 * @uses preg_match()
-	 *
-	 * @param  string $pattern
-	 * @param  mixed $subject
-	 * @param  int $flags
-	 * @param  int $offset
-	 * @return bool
-	 */
-	public static function is($pattern, $subject, $flags =0, $offset = 0)
-	{
-		$matches = null;
-		return (bool) preg_match(static::addModifiers($pattern), $subject, $matches, $flags, $offset);
-	}
-
-
-	/**
-     * @param Tea\Regex\RegularExpression|Tea\Regex\Bulder|string $pattern
-	 * @param string $subject
-	 * @param int $flags
-	 * @param int $offset
-	 *
-	 * @return \Tea\Regex\MatchResult
-	 */
-	public static function match($pattern, $subject, $flags = 0, $offset = 0)
-	{
-		return static::compile($pattern)->match($subject, $flags, $offset);
-	}
-
-	/**
-     * @param Tea\Regex\RegularExpression|Tea\Regex\Bulder|string $pattern
-	 * @param string $subject
-	 * @param int $flags
-	 * @param int $offset
-	 *
-	 * @return \Tea\Regex\MatchAllResult
-	 */
-	public static function matchAll($pattern, $subject, $flags = 0, $offset = 0)
-	{
-		return MatchAllResult::for(static::compile($pattern), $subject, $flags, $offset);
-	}
-
-	/**
-     * @param Tea\Regex\RegularExpression|Tea\Regex\Bulder|string $pattern
-	 * @param string|callable $replacement
-	 * @param string          $subject
-	 * @param int             $limit
-	 *
-	 * @return \Tea\Regex\ReplaceResult
-	 */
-	public static function replace($pattern, $replacement, $subject, $limit = -1)
-	{
-		return ReplaceResult::for(static::compile($pattern), $replacement, $subject, $limit);
-	}
-
-	/**
-	 * Quote (escape) regular expression characters and the delimiter in string.
-	 * Unless a $delimiter is passed, the default delimiter (Regex::delimiter())
-	 * will be quoted. FALSE can be passed as the delimiter to prevent any delimiter
-	 * including the default from being quoted.
-	 *
-	 * @see  Regex::delimiter()
-	 * @uses preg_quote()
-	 *
-	 * @param  string $value                The pattern to quote.
-	 * @param  null|string|false $delimiter  Delimiter used in string.
-	 * @return string   The quoted string
+	 * @var array
 	*/
-	public static function quote($value, $delimiter = null)
+	protected static $methodArgs;
+
+
+	/**
+	 * Create a Builder instance.
+	 *
+	 * @see  Tea\Regex\Builder::__construct()
+	 *
+	 * @param  string|null  $delimiter
+	 * @param  string|null  $modifiers
+	 *
+	 * @return Tea\Regex\Builder
+	 */
+	public static function builder($delimiter = null, $modifiers = null)
 	{
-		if(is_null($value) || $value == '')
-			return $value;
-
-		if(is_null($delimiter))
-			$delimiter = Config::delimiter();
-		elseif($delimiter === false)
-			$delimiter = null;
-
-		if(is_stringable($value) || !is_iterable($value))
-			return preg_quote( (string) $value, $delimiter);
-
-		$results = [];
-		foreach ($value as $k => $v) {
-			$results[$k] = preg_quote($v, $delimiter);
-		}
-		return $results;
+		return new Builder($delimiter, $modifiers);
 	}
 
+
+	/**
+	 * Create a RegularExpression instance.
+	 * If either the modifiers and/or the delimiter are not provided, the defaults
+	 * {@see \Tea\Regex\Config} will be used.
+	 *
+	 * @see  \Tea\Regex\RegularExpression::create()
+	 *
+	 * @param  string              $body
+	 * @param  string|null|false   $modifiers
+	 * @param  string|null         $delimiter
+	 *
+	 * @return \Tea\Regex\RegularExpression
+	 */
+	public static function create($body, $modifiers = null, $delimiter = null)
+	{
+		return RegularExpression::create($body, $modifiers, $delimiter);
+	}
+
+	/**
+	 * Create a RegularExpression instance from a possibly complete regex string
+	 * or a {@see \Tea\Regex\Contracts\Pattern} instance.
+	 * If the given pattern is string it will be parsed to extract the regex body,
+	 * modifiers and the delimiter if any.
+	 *
+	 * If either the modifiers and/or delimiter are neither set on the pattern
+	 * nor passed as arguments, the defaults {@see \Tea\Regex\Config} will be used.
+	 * Modifiers and/or the delimiter passed as arguments will be used instead
+	 * of those set on the pattern.
+	 *
+	 * @see  \Tea\Regex\RegularExpression::from()
+	 *
+	 * @param  string|\Tea\Regex\Contracts\Pattern  $pattern
+	 * @param  string|null|false                    $modifiers
+	 * @param  string|null                          $delimiter
+	 *
+	 * @return \Tea\Regex\RegularExpression
+	 */
+	public static function from($pattern, $modifiers = null, $delimiter = null)
+	{
+		return RegularExpression::from($pattern, $modifiers, $delimiter);
+	}
+
+	/**
+	 * Creates an instance of RegularExpression from the first argument and
+	 * invokes the given method with the rest of the passed arguments. The
+	 * optional modifiers and delimiter are expected to be the last arguments.
+	 *
+	 * For example, the following:
+	 *   Regex::match('( \d+ )', 'foo25', 0, 0, 'ux', '#');
+	 * translates to
+	 *   RegularExpression::from('( \d+ )', 'ux', '#')->match('foo25', 0, 0);
+	 *
+	 * @param string  $name
+	 * @param array $arguments
+	 *
+	 * @return mixed
+	 *
+	 * @throws \BadMethodCallException
+	 */
+	public static function __callStatic($name, $arguments)
+	{
+		if (is_null(static::$methodArgs)) {
+			$regexClass = new ReflectionClass('Tea\Regex\RegularExpression');
+			$methods = $regexClass->getMethods(ReflectionMethod::IS_PUBLIC);
+
+			foreach ($methods as $method) {
+				static::$methodArgs[$method->name] = $method->isStatic()
+						? false : $method->getNumberOfParameters() + 3;
+			}
+		}
+
+		if (!isset(static::$methodArgs[$name])){
+			throw new BadMethodCallException("Call to unknown RegularExpression method '{$name}'.");
+		}
+
+		$params = static::$methodArgs[$name];
+
+		if($params === false){
+			return call_user_func_array(['Tea\Regex\RegularExpression', $name], $arguments);
+		}
+
+		$numArgs = count($arguments);
+
+		if($numArgs < 1){
+			throw new TypeError("At least 1 argument (the regex pattern),"
+				." is required to create a RegularExpression instance in order"
+				." to invoke method '{$name}()'.");
+		}
+
+		$pattern = $arguments[0];
+
+		if ($numArgs === $params){
+			$args = array_slice($arguments, 1, -2);
+			$modifiers = $arguments[$numArgs - 2];
+			$delimiter = $arguments[$numArgs - 1];
+		}
+		elseif($numArgs === ($params - 1)){
+			$args = array_slice($arguments, 1, -1);
+			$modifiers = $arguments[$numArgs - 1];
+			$delimiter = null;
+		}
+		else {
+			$args = array_slice($arguments, 1);
+			$modifiers = null;
+			$delimiter = null;
+		}
+
+		$instance = static::from($pattern, $modifiers, $delimiter);
+
+		return call_user_func_array(array($instance, $name), $args);
+	}
 }

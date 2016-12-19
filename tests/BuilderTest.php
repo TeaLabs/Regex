@@ -18,54 +18,73 @@ class BuilderTest extends TestCase
 		$this->r = new Builder();
 	}
 
-
-	public function rawProvider()
+	protected function create($delimiter = null, $modifiers = null)
 	{
-		return [
-			[ [], '/^abc.+xyz$/ui' ],
-			[ [], '/abc.+xyz$ui' ],
-			[ [], '^abc.+xyz$' ],
-			[ [], 'xxẦ' ],
-			[ [], '' ],
-			[ [], '/^(abc(?:xx))(\s).+(\d)(?:skp)(\1)$/u' ],
-		];
+		return new Builder($delimiter, $modifiers);
+	}
+
+	public function testCreate()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testModifiers()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testRemoveModifiers()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testHasModifier()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testIgnoreCase()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testMultiLine()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testSanitize()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function testCompile()
+	{
+		$this->emptyTest(__METHOD__);
 	}
 
 	/**
-	 * @dataProvider rawProvider()
+	 * @expectedException \BadMethodCallException
 	 */
-	public function testRaw($expected, $pattern, $flags = 0, $builder = null)
+	public function testGlobalMatch()
 	{
-		$builder = $builder ?: new Builder;
-		$ex = '0l';
-		$encoding = $ex ? 'ASCII' : 'NOT-ASCII';
-		// echo "\n*****\n Encoding : {$encoding}";
-
-		// $matches = $builder->raw($pattern, $flags);
-
-		// foreach ($matches as $key => &$match) {
-		// 	$match = json_encode($match);
-		// }
-		// $ms = print_r((string) $matches, true);
-		// $ms = str_replace(["\n"], ["\n  "], $ms);
-		// echo "\n*****\n Pattern {$pattern} : {$ms}";
+		$this->create()->globalMatch();
 	}
 
-	public function testRegExp()
+	/**
+	 * @expectedException \BadMethodCallException
+	 */
+	public function testPregMatchFlags()
 	{
-		$regEx = $this->r
-			->startOfLine()
-			->exactly(1)
-			->of("p")
-			->compile();
+		$this->create()->pregMatchFlags();
+	}
 
-
-		$this->assertTrue(is_string($regEx->getFlags()));
-		$this->assertTrue($regEx->getFlags() === "m");
-
-		$this->assertTrue(is_string($regEx->__toString()));
-		$this->assertTrue(is_string($regEx->getExpression()));
-
+	/**
+	 * @expectedException \BadMethodCallException
+	 */
+	public function testGetRegExp()
+	{
+		$this->create()->getRegExp();
 	}
 
 	public function testMoney()
@@ -429,7 +448,6 @@ class BuilderTest extends TestCase
 	{
 		$regEx = $this->r
 			->ignoreCase()
-			->globalMatch()
 			->startOfLine()
 			->letter()
 			->append($this->r->getNew()->digit())
@@ -808,9 +826,9 @@ class BuilderTest extends TestCase
 			->exactly(3)->digits()->asGroup("numbers")
 			->compile();
 
-		$res = $regEx->findIn("hello-123-abc");
+		$res = $regEx->match("hello-123-abc");
 
-		$this->assertTrue(array_key_exists("numbers", $res));
+		$this->assertTrue($res->has('numbers'));
 
 	}
 
@@ -872,7 +890,7 @@ class BuilderTest extends TestCase
 			->exactly(2)->of("p")
 			->compile();
 
-		$matches = $regEx->findIn("pprrrrpprrpp");
+		$matches = $regEx->match("pprrrrpprrpp");
 		$this->assertTrue($matches[0] == "pprrrrpp");
 	}
 
@@ -912,7 +930,7 @@ class BuilderTest extends TestCase
 			->exactly(1)->from(array("p", "q", "r"))
 			->compile();
 
-		$matches = $regEx->findIn("pdartq");
+		$matches = $regEx->match("pdartq");
 		$this->assertTrue($matches[1] == "dart");
 	}
 
@@ -951,20 +969,20 @@ class BuilderTest extends TestCase
 		$this->assertFalse($regEx->matches("p"));
 	}
 
-	public function testAlias()
-	{
-		$regEx = $this->r
-			->startOfLine()
-			->upperCaseLetter()
-			->compile();
+	// public function testAlias()
+	// {
+	// 	$regEx = $this->r
+	// 		->startOfLine()
+	// 		->upperCaseLetter()
+	// 		->compile();
 
-		//check deprecated alias methods
-		$this->assertTrue($regEx->test("A24"));
-		$this->assertTrue($regEx->matches("A24"));
+	// 	//check deprecated alias methods
+	// 	$this->assertTrue($regEx->test("A24"));
+	// 	$this->assertTrue($regEx->matches("A24"));
 
-		$this->assertArrayHasKey(0, $regEx->exec("A45"));
-		$this->assertArrayHasKey(0, $regEx->findIn("A45"));
+	// 	$this->assertArrayHasKey(0, $regEx->exec("A45"));
+	// 	$this->assertArrayHasKey(0, $regEx->findIn("A45"));
 
-	}
+	// }
 
 }

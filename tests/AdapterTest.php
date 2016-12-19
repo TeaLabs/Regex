@@ -19,7 +19,7 @@ class AdapterTest extends TestCase
 
 
 	/**
-	 * Asserts that a variable is of a Matches instance.
+	 * Asserts that a variable is of a Replacement instance.
 	 *
 	 * @param mixed $object
 	 */
@@ -55,7 +55,7 @@ class AdapterTest extends TestCase
 	}
 
 
-	public function filterThrowsMatchErrorProvider()
+	public function filterThrowsFilterErrorProvider()
 	{
 		return [
 			[
@@ -78,10 +78,10 @@ class AdapterTest extends TestCase
 	}
 
 	/**
-	 * @dataProvider filterThrowsMatchErrorProvider()
+	 * @dataProvider filterThrowsFilterErrorProvider()
 	 * @expectedException \Tea\Regex\Exception\FilterError
 	 */
-	public function testFilterThrowsMatchError($pattern, $input)
+	public function testFilterThrowsFilterError($pattern, $input)
 	{
 		Adapter::filter($pattern, $input);
 	}

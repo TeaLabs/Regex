@@ -35,32 +35,47 @@ class Config
 	 */
 	public static function delimiter($delimiter = null)
 	{
-		if($delimiter && static::isValidDelimiter($delimiter, true))
+		if($delimiter && static::validateDelimiter($delimiter))
 			return static::$delimiter = $delimiter;
 
 		return static::$delimiter;
 	}
 
 	/**
-	 * Determine if the given value is a valid delimiter. If throwException is
-	 * passed and is TRUE, an InvalidDelimiterException will be thrown if delimiter
-	 * invalid.
+	 * Determine if the given value is a valid delimiter.
 	 *
-	 * @param  mixed $value
-	 * @param  bool  $orException
+	 * @see  \Tea\Regex\Config::ALLOWED_DELIMITERS for a list of valid delimiters.
+	 * @uses \Tea\Regex\Config::validateDelimiter() but does not throw any exception.
+	 *
+	 * @param  mixed $delimiter
+	 * @return bool
+	 */
+	public static function isValidDelimiter($delimiter)
+	{
+		return static::validateDelimiter($delimiter, true);
+	}
+
+	/**
+	 * Determine if the given value is a valid delimiter. Unless silent is set to
+	 * TRUE, an InvalidDelimiterException will be thrown if the value is invalid.
+	 *
+	 * @see \Tea\Regex\Config::ALLOWED_DELIMITERS for a list of valid delimiters.
+	 *
+	 * @param  mixed $delimiter
+	 * @param  bool  $silent
+	 *
 	 * @return bool
 	 *
 	 * @throws \Tea\Regex\Exception\InvalidDelimiterException
 	 */
-	public static function isValidDelimiter($value, $orException = false)
+	public static function validateDelimiter($delimiter, $silent = false)
 	{
-		if(strpos(static::ALLOWED_DELIMITERS, (string) $value) !== false)
+		if(strpos(self::ALLOWED_DELIMITERS, (string) $delimiter) !== false)
 			return true;
 
-		if(!$orException)
-			return false;
+		if($silent)	return false;
 
-		throw new InvalidDelimiterException($value);
+		throw new InvalidDelimiterException($delimiter);
 	}
 
 	/**
@@ -75,7 +90,7 @@ class Config
 	 */
 	public static function modifiers($modifiers = null)
 	{
-		if(!is_null($modifiers) && Modifiers::isValid($modifiers, true))
+		if(!is_null($modifiers) && Modifiers::validate($modifiers))
 			return static::$modifiers = $modifiers;
 
 		return static::$modifiers;

@@ -2,200 +2,1010 @@
 namespace Tea\Regex\Tests;
 
 use Tea\Regex\Regex;
-use Tea\Regex\RegexFailed;
+use Tea\Regex\Config;
+use Tea\Regex\Tests\Mocks\StringObject;
 
 class RegexTest extends TestCase
 {
 
+	/**
+	 * Asserts that a variable is of a RegularExpression instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertIsRegularExpression($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\RegularExpression', $object);
+	}
+
+	/**
+	 * Asserts that a variable is of a Matches instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertInstanceOfMatches($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\Result\Matches', $object);
+	}
+
+
+	/**
+	 * Asserts that a variable is of a Replacement instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertInstanceOfReplacement($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\Result\Replacement', $object);
+	}
+
+	public function testBuilder()
+	{
+		$this->emptyTest(__METHOD__);
+	}
+
+	public function createProvider()
+	{
+		return [
+			[
+				[
+					Config::delimiter().'^\+254\d{9}$'.Config::delimiter().Config::modifiers(),
+					Config::modifiers(),
+					Config::delimiter()
+				],
+				'^\+254\d{9}$',
+				null,
+				null
+			],
+			[
+				[
+					'#^\+254\d{9}$#'.Config::modifiers(),
+					Config::modifiers(),
+					'#'
+				],
+				'^\+254\d{9}$',
+				null,
+				'#'
+			],
+			[
+				[
+					'#^\+254\d{9}$#usx',
+					'usx',
+					'#'
+				],
+				'^\+254\d{9}$',
+				'usx',
+				'#'
+			],
+			[
+				[
+					Config::delimiter().'^\+254\d{9}$'.Config::delimiter().'uim',
+					'uim',
+					Config::delimiter()
+				],
+				'^\+254\d{9}$',
+				'uim',
+				null
+			],
+			[
+				[
+					'/^\+254\d{9}$/',
+					'',
+					'/'
+				],
+				'^\+254\d{9}$',
+				false,
+				'/'
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider createProvider()
+	 */
+	public function testCreate(array $expected, $body, $modifiers = null, $delimiter = null)
+	{
+		$regex = Regex::create($body, $modifiers, $delimiter);
+		$this->assertIsRegularExpression($regex);
+		list($epattern, $emodifiers, $edelimiter) = $expected;
+		$this->assertEquals($emodifiers, $regex->getModifiers());
+		$this->assertEquals($edelimiter, $regex->getDelimiter());
+		$this->assertEquals($epattern, $regex);
+		$this->assertEquals($epattern, (string) $regex);
+	}
+
+	public function fromProvider()
+	{
+		return [
+			[
+				[
+					Config::delimiter().'^\+254\d{9}$'.Config::delimiter().Config::modifiers(),
+					Config::modifiers(),
+					Config::delimiter()
+				],
+				'^\+254\d{9}$'
+			],
+			[
+				[
+					'#^\+254\d{9}$#'.Config::modifiers(),
+					Config::modifiers(),
+					'#'
+				],
+				'#^\+254\d{9}$#',
+			],
+			[
+				[
+					'#^\+254\d{9}$#usx',
+					'usx',
+					'#'
+				],
+				'#^\+254\d{9}$#usx',
+			],
+			[
+				[
+					'/^\+254\d{9}$/',
+					'',
+					'/'
+				],
+				'#^\+254\d{9}$#uis',
+				false,
+				'/'
+			],
+			[
+				[
+					'/^\+254\d{9}$/',
+					'',
+					'/'
+				],
+				Regex::create('^\+254\d{9}$', false, '/')
+			],
+			[
+				[
+					'/^\+254\d{9}$/ix',
+					'ix',
+					'/'
+				],
+				Regex::create('^\+254\d{9}$', 'ix', '/')
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider fromProvider()
+	 */
+	public function testFrom(array $expected, $pattern, $modifiers = null, $delimiter = null)
+	{
+		$regex = Regex::from($pattern, $modifiers, $delimiter);
+		$this->assertIsRegularExpression($regex);
+		list($epattern, $emodifiers, $edelimiter) = $expected;
+		$this->assertEquals($emodifiers, $regex->getModifiers());
+		$this->assertEquals($edelimiter, $regex->getDelimiter());
+		$this->assertEquals($epattern, $regex);
+		$this->assertEquals($epattern, (string) $regex);
+	}
+
+
+	public function fromInstanceProvider()
+	{
+		return [
+			[
+				[
+					'/(?:(?:[A-Za-z]){0,2})(?:(?:(?:\d)){1,})/u',
+					'u',
+					'/'
+				],
+				Regex::builder('/', 'u')
+					->max(2)
+					->letters()
+					->min(1)
+					->digits()
+			],
+			[
+				[
+					'/^\+254\d{9}$/',
+					'',
+					'/'
+				],
+				Regex::create('^\+254\d{9}$', false, '/')
+			],
+			[
+				[
+					'/^\+254\d{9}$/ix',
+					'ix',
+					'/'
+				],
+				Regex::create('^\+254\d{9}$', 'ix', '/')
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider fromInstanceProvider()
+	 */
+	public function testFromInstance(array $expected, $pattern, $modifiers = null, $delimiter = null)
+	{
+		$regex = Regex::fromInstance($pattern, $modifiers, $delimiter);
+		$this->assertIsRegularExpression($regex);
+		list($epattern, $emodifiers, $edelimiter) = $expected;
+		$this->assertEquals($emodifiers, $regex->getModifiers());
+		$this->assertEquals($edelimiter, $regex->getDelimiter());
+		$this->assertEquals($epattern, $regex);
+		$this->assertEquals($epattern, (string) $regex);
+	}
+
+
+	public function filterProvider()
+	{
+		return [
+			[
+				["+254701888020", "+254711345543"],
+				"/^\+254\d{9}$/u",
+				explode(" ", "0722555121 +254701888020 0733446643 0700072245 +254711345543"),
+			],
+			[
+				explode(" ", "0722555121 0733446643 0700072245"),
+				"/^\+254\d{9}$/u",
+				explode(" ", "0722555121 +254701888020 0733446643 0700072245 +254711345543"),
+				true,
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider filterProvider()
+	 */
+	public function testFilter($expected, $pattern, $input, $invert = false)
+	{
+		$result = Regex::filter($pattern, $input, $invert);
+		$this->assertEquals($expected, array_values($result));
+	}
+
+
+	public function filterThrowsFilterErrorProvider()
+	{
+		return [
+			[
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4}/u",
+				["Call 555-1212 or 1-800-555-1212"]
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				["foobar foobar foobar"],
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider filterThrowsFilterErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\FilterError
+	 */
+	public function testFilterThrowsFilterError($pattern, $input)
+	{
+		Regex::filter($pattern, $input);
+	}
+
+
 /***Match***/
 
-	/** @test */
-	public function it_can_determine_if_a_match_was_made()
+	public function matchProvider()
 	{
-		$this->assertTrue(Regex::match('abc', 'abc')->hasMatch());
-		$this->assertFalse(Regex::match('abc', 'def')->hasMatch());
+		return [
+			[
+				[
+					'555-1212',
+					'555-1212',
+				],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+			],
+			[
+				[
+					'Call 555-1212',
+					'555-1212',
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212"
+			],
+			[
+				[
+					'Call 555-1212',
+					'Call',
+					'555-1212',
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212"
+			],
+			[
+				[
+					'555-1212',
+					'555-1212',
+				],
+				StringObject::create("/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u"),
+				StringObject::create("Call 555-1212 or 1-800-555-1212"),
+			],
+		];
 	}
 
 	/**
-	 * @expectedException \Tea\Regex\RegexFailed
+	 * @dataProvider matchProvider()
 	 */
-	// public function _test_it_throws_an_exception_if_a_match_throws_an_error()
-	// {
-	// 	echo "\n****\n".Regex::compile('/abc/qw');
-	// 	return;
-	// 	$this->expectException(RegexFailed::class);
-	// 	$this->expectExceptionMessage(
-	// 		RegexFailed::match('/abc/qw', 'abc', 'preg_match(): No ending delimiter \'/\' found')->getMessage()
-	// 	);
-
-	// 	Regex::match('/abc/qw', 'abc');
-	// }
-
-	/**
-	 * @expectedException \Tea\Regex\RegexFailed
-	 */
-	// public function _test_it_throws_an_exception_if_a_match_throws_a_preg_error()
-	// {
-	// 	$this->expectException(RegexFailed::class);
-	// 	$this->expectExceptionMessage(
-	// 		RegexFailed::match('/(?:\D+|<\d+>)*[!?]/', 'foobar foobar foobar', 'PREG_BACKTRACK_LIMIT_ERROR')->getMessage()
-	// 	);
-
-	// 	Regex::match('/(?:\D+|<\d+>)*[!?]/', 'foobar foobar foobar');
-	// }
-
-	/** @test */
-	public function it_can_retrieve_the_matched_result()
+	public function testMatch($expected, $pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertEquals('abc', Regex::match('/abc/', 'abcdef')->result());
+		$matches = Regex::match($pattern, $subject, $offset, $flags);
+		$this->assertInstanceOfMatches($matches);
+		$this->assertEquals($expected, $matches->result());
 	}
 
-	/** @test */
-	public function it_returns_null_if_a_result_is_queried_for_a_subject_that_didnt_match_a_pattern()
-	{
-		$this->assertNull(Regex::match('/abc/', 'def')->result());
-	}
 
-	/** @test */
-	public function it_can_retrieve_a_matched_group()
+	public function matchThrowsMatchErrorProvider()
 	{
-		$this->assertEquals('a', Regex::match('/(a)bc/', 'abcdef')->group(1));
+		return [
+			[
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4}/u",
+				"Call 555-1212 or 1-800-555-1212"
+			],
+			[
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				["Call 555-1212 or 1-800-555-1212"]
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				"foobar foobar foobar",
+			],
+		];
 	}
 
 	/**
-	 * @expectedException \Tea\Regex\RegexFailed
+	 * @dataProvider matchThrowsMatchErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\MatchError
 	 */
-	// public function _test_it_throws_an_exception_if_a_non_existing_group_is_queried()
-	// {
-	// 	$this->expectException(RegexFailed::class);
-	// 	$this->expectExceptionMessage(RegexFailed::indexedGroupDoesntExist('/(a)bc/', 'abcdef', 2)->getMessage());
-
-	// 	Regex::match('/(a)bc/', 'abcdef')->group(2);
-	// }
-
-	/** @test */
-	public function it_can_retrieve_a_matched_named_group()
+	public function testMatchThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertSame('a', Regex::match('/(?<samename>a)bc/', 'abcdef')->namedGroup('samename'));
+		Regex::match($pattern, $subject, $offset, $flags);
+	}
+
+
+	public function matchAllProvider()
+	{
+		return [
+			[
+				[
+					['555-1212', '1-800-555-1212'],
+					['555-1212', '1-800-555-1212'],
+				],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+			],
+			[
+				[
+					['Call 555-1212', ' or 1-800-555-1212'],
+					['555-1212', '1-800-555-1212'],
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+			],
+			[
+				[
+					['Call 555-1212', ' or 1-800-555-1212'],
+					['Call', 'or'],
+					['555-1212', '1-800-555-1212'],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+			],
+			[
+				[
+					['Call 555-1212', ' or 1-800-555-1212'],
+					['Call', 'or'],
+					['555-1212', '1-800-555-1212'],
+				],
+				StringObject::create("/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u"),
+				StringObject::create("Call 555-1212 or 1-800-555-1212"),
+			],
+		];
 	}
 
 	/**
-	 * @expectedException \Tea\Regex\RegexFailed
+	 * @dataProvider matchAllProvider()
 	 */
-	// public function _test_it_throws_an_exception_if_a_non_existing_named_group_is_queued()
-	// {
-	// 	$this->expectException(RegexFailed::class);
-	// 	$this->expectExceptionMessage(
-	// 		RegexFailed::namedGroupDoesntExist('/(?<samename>a)bc/', 'abcdef', 'invalidname')->getMessage()
-	// 	);
-
-	// 	Regex::match('/(?<samename>a)bc/', 'abcdef')->namedGroup('invalidname');
-	// }
-
-/***End Match***/
-
-/***Match All***/
-
-	 /** @test */
-	public function it_can_determine_if_a_match_all_was_made()
+	public function testMatchAll($expected, $pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertTrue(Regex::matchAll('/a/', 'aaa')->hasMatch());
-		$this->assertFalse(Regex::matchAll('/b/', 'aaa')->hasMatch());
+		$matches = Regex::matchAll($pattern, $subject, $offset, $flags);
+		$this->assertInstanceOfMatches($matches);
+		$this->assertEquals($expected, $matches->result());
 	}
 
-	/** @test */
-	public function it_can_retrieve_the_matched_results()
-	{
-		$results = Regex::matchAll('/a/', 'aaa')->results();
 
-		$this->assertCount(3, $results);
-		$this->assertEquals('a', $results[0]->result());
-		$this->assertEquals('a', $results[1]->result());
-		$this->assertEquals('a', $results[2]->result());
+	public function matchAllThrowsMatchErrorProvider()
+	{
+		return [
+			[
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/qt",
+				"Call 555-1212 or 1-800-555-1212",
+			],
+			[
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4}/u",
+				"Call 555-1212 or 1-800-555-1212"
+			],
+			[
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				["Call 555-1212 or 1-800-555-1212"]
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				"foobar foobar foobar",
+			],
+		];
 	}
 
-	/** @test */
-	public function it_returns_an_empty_array_if_a_result_is_queried_for_a_subject_that_didnt_match_a_pattern()
+	/**
+	 * @dataProvider matchAllThrowsMatchErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\MatchError
+	 */
+	public function testMatchAllThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertEmpty(Regex::matchAll('/abc/', 'def')->results());
+		Regex::matchAll($pattern, $subject, $offset, $flags);
 	}
 
-	// public function _test_it_throws_an_exception_if_a_match_throws_an_error()
-	// {
-	// 	$this->expectException(RegexFailed::class);
-	// 	$this->expectExceptionMessage(
-	// 		RegexFailed::match('/abc', 'abc', 'preg_match_all(): No ending delimiter \'/\' found')->getMessage()
-	// 	);
-
-	// 	Regex::matchAll('/abc', 'abc');
-	// }
-
-
-	// public function _test_it_throws_an_exception_if_a_match_throws_a_preg_error()
-	// {
-	// 	$this->expectException(RegexFailed::class);
-	// 	$this->expectExceptionMessage(
-	// 		RegexFailed::match('/(?:\D+|<\d+>)*[!?]/', 'foobar foobar foobar', 'PREG_BACKTRACK_LIMIT_ERROR')->getMessage()
-	// 	);
-
-	// 	Regex::matchAll('/(?:\D+|<\d+>)*[!?]/', 'foobar foobar foobar');
-	// }
-
-	/** @test */
-	public function it_can_retrieve_groups_from_the_matched_results()
+	public function matchesProvider()
 	{
-		$results = Regex::matchAll('/a(b)/', 'abab')->results();
-
-		$this->assertCount(2, $results);
-		$this->assertEquals('ab', $results[0]->result());
-		$this->assertEquals('b', $results[0]->group(1));
-		$this->assertEquals('ab', $results[1]->result());
-		$this->assertEquals('b', $results[1]->group(1));
+		return [
+			[
+				true,
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+			],
+			[
+				false,
+				"/\s(?:[a-zA-Z]+)\s{4,}(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212"
+			],
+			[
+				true,
+				StringObject::create("/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u"),
+				StringObject::create("Call 555-1212 or 1-800-555-1212"),
+			],
+			[
+				false,
+				StringObject::create("/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{6})/u"),
+				StringObject::create("Call 555-1212 or 1-800-555-1212"),
+			],
+		];
 	}
 
-/***End Match All***/
-
-
-/***Replace***/
-
- 	/** @test */
-	public function it_can_replace_a_pattern_with_a_string()
+	/**
+	 * @dataProvider matchesProvider()
+	 */
+	public function testMatches($expected, $pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertEquals('bbbb', Regex::replace('/a/', 'b', 'aabb')->result());
+		$result = Regex::matches($pattern, $subject, $offset, $flags);
+		$this->assertInternalType('boolean', $result);
+		$this->assertEquals($expected, $result);
 	}
 
-	/** @test */
-	public function it_can_replace_a_patterns_with_a_callback()
+
+	/**
+	 * @dataProvider matchThrowsMatchErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\MatchError
+	 */
+	public function testMatchesThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertEquals('ababc', Regex::replace('/a(b)/', function ($match) {
-			return $match->result().$match->result();
-		}, 'abc')->result());
+		Regex::matches($pattern, $subject, $offset, $flags);
 	}
 
-	/** @test */
-	public function it_can_replace_an_array_of_patterns_with_a_replacement()
+	/**
+	 * @dataProvider matchesProvider()
+	 */
+	public function testIs($expected, $pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertEquals('cccc', Regex::replace(['/a/', '/b/'], 'c', 'aabb')->result());
+		$result = Regex::is($pattern, $subject, $offset, $flags);
+		$this->assertInternalType('boolean', $result);
+		$this->assertEquals($expected, $result);
 	}
 
-	/** @test */
-	public function it_can_replace_an_array_of_patterns_with_an_array()
+
+	/**
+	 * @dataProvider matchThrowsMatchErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\MatchError
+	 */
+	public function testIsThrowsMatchError($pattern, $subject, $offset = 0, $flags = 0)
 	{
-		$this->assertEquals('ccdd', Regex::replace(['/a/', '/b/'], ['c', 'd'], 'aabb')->result());
+		Regex::is($pattern, $subject, $offset, $flags);
 	}
 
-	/** @test */
-	public function it_can_limit_the_amount_of_replacements()
+
+	public function replaceProvider()
 	{
-		$this->assertEquals('babb', Regex::replace('/a/', 'b', 'aabb', 1)->result());
+		return [
+			[
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				-1,
+				4
+			],
+			[
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				"/(?<=^|\s)0(7\d{2})/ux",
+				'+254$1',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				-1,
+				4
+			],
+			[
+				"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				2,
+				2,
+			],
+
+			[
+				explode(" ", "+254722555121 +254701888020 +254733446643 +254700072245 +254711345543"),
+				"/^0(7\d{2})/u",
+				'+254$1',
+				explode(" ", "0722555121 0701888020 0733446643 0700072245 +254711345543"),
+			],
+
+			[
+				['home' =>  "+254722555121", 'office' => "+254701888020", 'cell' => "+254733446643"],
+				"/^0(7\d{2})/u",
+				'+254$1',
+				['home' =>  "0722555121", 'office' => "0701888020", 'cell' => "0733446643"]
+			],
+			[
+				[
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				],
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				[
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				],
+				-1,
+				20
+			],
+			[
+				[
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+				],
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				[
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				],
+				2,
+				10
+			],
+			[
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				"/(?:^|(?P<space>\s+))(?P<netId>07\d{2})/u",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				-1,
+				4
+			],
+			[
+				"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+				"/ (?: ^| (?P<space> \s+ ) ) (?P<netId> 07\d{2} )/ux",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				2,
+				2
+			],
+		];
 	}
 
-	/** @test */
-	public function it_counts_the_amount_of_replacements()
+	/**
+	 * @dataProvider replaceProvider()
+	 */
+	public function testReplace($expected, $pattern, $replace, $subject, $limit = -1, $count = null)
 	{
-		$this->assertEquals(2, Regex::replace('/a/', 'b', 'aabb')->count());
+		$revs = 1;
+		for ($i=0; $i < $revs; $i++) {
+			$result = Regex::replace($pattern, $replace, $subject, $limit);
+		}
+
+		$this->assertInstanceOfReplacement($result);
+		$this->assertEquals($expected, $result->result());
+		if(!is_null($count)){
+			$this->assertEquals($count, $result->count());
+		}
 	}
 
-/***End Replace***/
 
+	public function replaceThrowsReplacementErrorProvider()
+	{
+		return [
+			[
+				"/(?:^|(\s+))0(7\d{2})/qwerty",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+			],
+			[
+				"/(?:^|(\s+))0(7\d{2}/u",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				"",
+				"foobar foobar foobar",
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider replaceThrowsReplacementErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\ReplacementError
+	 */
+	public function testReplaceThrowsReplacementError($pattern, $replace, $subject, $limit = -1)
+	{
+		Regex::replace($pattern, $replace, $subject, $limit);
+	}
+
+	public function replaceCallbackProvider()
+	{
+		return [
+			[
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				"/(?:^|(?P<space>\s+))(?P<netId>07\d{2})/u",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				-1,
+				4
+			],
+			[
+				"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+				"/ (?: ^| (?P<space> \s+ ) ) (?P<netId> 07\d{2} )/ux",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				2,
+				2
+			],
+			[
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				"/ (?: ^| (?P<space> \s+ ) ) (?P<prefix> (?:\+{0,1}254 | 07\d{2}) )/ux",
+				function($matches){
+					if($matches->prefix === '+254')
+						return $matches[1] . $matches[2];
+					elseif (strpos($matches->prefix, '254') === 0)
+						return $matches[1] . '+'. $matches[2];
+					elseif (strpos($matches->prefix, '07') === 0)
+						return $matches[1].'+254'. substr($matches[2], 1);
+					else
+						return $matches[1] . $matches[2];
+				},
+				"0722555121 0701888020 254733446643 254700072245 +254711345543",
+				-1,
+				5
+			],
+
+			[
+				explode(" ", "+254722555121 +254701888020 +254733446643 +254700072245 +254711345543"),
+				"/(?:^|(?P<space>\s+))(?P<netId>07\d{2})/u",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				explode(" ", "0722555121 0701888020 0733446643 0700072245 +254711345543"),
+				-1,
+				4
+			],
+
+			[
+				['home' =>  "+254722555121", 'office' => "+254701888020", 'cell' => "+254733446643"],
+				"/(?:^|(?P<space>\s+))(?P<netId>07\d{2})/u",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				['home' =>  "0722555121", 'office' => "0701888020", 'cell' => "0733446643"]
+			],
+			[
+				[
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				],
+				"/(?:^|(?P<space>\s+))(?P<netId>07\d{2})/u",
+				function($matches){
+					return $matches->space.'+254'. substr($matches->netId, 1);
+				},
+				[
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				],
+				-1,
+				20
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider replaceCallbackProvider()
+	 */
+	public function testReplaceCallback($expected, $pattern, $replace, $subject, $limit = -1, $count = null)
+	{
+		$callback = function($matches) use ($replace){
+			$this->assertInstanceOfMatches($matches);
+			return $replace($matches);
+		};
+
+		$result = Regex::replaceCallback($pattern, $callback, $subject, $limit);
+		$this->assertInstanceOfReplacement($result);
+		$this->assertEquals($expected, $result->result());
+		if(!is_null($count)){
+			$this->assertEquals($count, $result->count());
+		}
+	}
+
+	public function replaceCallbackThrowsReplacementErrorProvider()
+	{
+		return [
+			[
+				"/(?:^|(?P<space>\s+))0(?P<provider>7\d{2})/qwerty",
+				function($matches){
+					return $matches->space.'+254'.$matches->provider;
+				},
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+			],
+			[
+				"/(?:^|(?P<space>\s+))0(?P<provider>7\d{2}/u",
+				function($matches){
+					return $matches->space.'+254'.$matches->provider;
+				},
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				function($matches){
+					return $matches[0];
+				},
+				"foobar foobar foobar",
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider replaceCallbackThrowsReplacementErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\ReplacementError
+	 */
+	public function testReplaceCallbackThrowsReplacementError($pattern, $replace, $subject, $limit = -1)
+	{
+		Regex::replaceCallback($pattern, $replace, $subject, $limit);
+	}
+
+
+	public function replacedProvider()
+	{
+		return [
+			[
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				-1,
+				4
+			],
+			[
+				null,
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				-1,
+			],
+			[
+				null,
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				explode(" ", "+254722555121 +254701888020 +254733446643 +254700072245"),
+				-1,
+			],
+			[
+				"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+				2,
+				2,
+			],
+
+			[
+				explode(" ", "+254722555121 +254701888020 +254733446643 +254700072245"),
+				"/^0(7\d{2})/u",
+				'+254$1',
+				explode(" ", "0722555121 0701888020 0733446643 0700072245 +254711345543"),
+				-1,
+				4
+			],
+
+			[
+				['home' =>  "+254722555121", 'cell' => "+254733446643"],
+				"/^0(7\d{2})/u",
+				'+254$1',
+				['home' =>  "0722555121", 'office' => "+254701888020", 'cell' => "0733446643"],
+				-1,
+				2
+			],
+			[
+				[
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				],
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				[
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				],
+				-1,
+				16
+			],
+			[
+				[
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 0733446643 0700072245 +254711345543",
+				],
+				"/(?:^|(\s+))0(7\d{2})/u",
+				'$1+254$2',
+				[
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"0722555121 0701888020 0733446643 0700072245 +254711345543",
+					"+254722555121 +254701888020 +254733446643 +254700072245 +254711345543",
+				],
+				2,
+				8
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider replacedProvider()
+	 */
+	public function testReplaced($expected, $pattern, $replace, $subject, $limit = -1, $count = null)
+	{
+		$result = Regex::replaced($pattern, $replace, $subject, $limit);
+		if(!is_null($expected)){
+			$this->assertInstanceOfReplacement($result);
+			$this->assertEquals($expected, $result->result());
+			if(!is_null($count)){
+				$this->assertEquals($count, $result->count());
+			}
+		}
+		else{
+			$this->assertNull($result);
+		}
+
+	}
+
+
+	public function replacedThrowsReplacementErrorProvider()
+	{
+		return [
+			[
+				"/(?:^|(\s+))0(7\d{2})/qwerty",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+			],
+			[
+				"/(?:^|(\s+))0(7\d{2}/u",
+				'$1+254$2',
+				"0722555121 0701888020 0733446643 0700072245 +254711345543",
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				'',
+				"foobar foobar foobar",
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider replacedThrowsReplacementErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\ReplacementError
+	 */
+	public function testReplacedThrowsReplacementError($pattern, $replace, $subject, $limit = -1)
+	{
+		Regex::replaced($pattern, $replace, $subject, $limit);
+	}
+
+	public function splitProvider()
+	{
+		return [
+			[
+				["hypertext", "language", "programming"],
+				"/[\s,]+/",
+				"hypertext language, programming"
+			],
+			[
+				["HypertextLanguageProgramming"],
+				"/[\s,]+/",
+				"HypertextLanguageProgramming"
+			],
+			[
+				['f', 'o', 'o', 'b', 'a', 'r'],
+				'/(?: |)/',
+				"foo bar",
+				-1,
+				PREG_SPLIT_NO_EMPTY
+			],
+			[
+				["hypertext", "language, programming"],
+				"/[\s,]+/",
+				"hypertext language, programming",
+				2
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider splitProvider()
+	 */
+	public function testSplit($expected, $pattern, $subject, $limit = -1, $flags = 0)
+	{
+		$result = Regex::split($pattern, $subject, $limit, $flags);
+		$this->assertEquals($expected, $result);
+	}
+
+	public function splitThrowsSplitErrorProvider()
+	{
+		return [
+			[
+				"/[\s,]+/qwerty",
+				"hypertext language, programming"
+			],
+			[
+				"/(?:\D+|<\d+>)*[!?]/",
+				"foobar foobar foobar",
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider splitThrowsSplitErrorProvider()
+	 * @expectedException \Tea\Regex\Exception\SplitError
+	 */
+	public function testSplitThrowsSplitError($pattern, $subject, $limit = -1, $flags = 0)
+	{
+		Regex::split($pattern, $subject, $limit, $flags);
+	}
 }
