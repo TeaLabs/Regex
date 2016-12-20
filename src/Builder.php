@@ -204,6 +204,12 @@ class Builder extends RegExpBuilder implements Pattern
 	}
 
 
+	/**
+	 * Add a literal value.
+	 *
+	 * @param  mixed   $s
+	 * @return $this
+	 */
 	public function of($s)
 	{
 		$this->_of = $this->sanitize($s);
