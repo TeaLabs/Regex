@@ -7,20 +7,6 @@ use InvalidArgumentException;
 
 class Helpers
 {
-	/**
-	 * Creates a new Expression object from the given pattern and modifiers.
-	 * The given pattern will be parsed to extract any modifiers, start of subject/line
-	 * assertions (\A or ^) and end of subject/line assertions (\z or $).
-	 *
-	 * @param  string|null   $pattern
-	 * @param  string        $modifiers
-	 * @return \Tea\Regex\Regex
-	 */
-	public static function re($pattern = null, $modifiers = null)
-	{
-		return new Regex($str, $encoding);
-	}
-
 
 	/**
 	 * Determine whether the mbstring module is loaded. If strict is false (the default),
