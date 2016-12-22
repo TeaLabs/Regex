@@ -43,7 +43,6 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tea\\Contracts\\" : "../contracts/src/",
             "Tea\\Regex\\Tests\\": "tests/"
         }
     },
