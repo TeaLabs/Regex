@@ -1,8 +1,9 @@
 <?php
 namespace Tea\Regex;
 
+use Tea\Regex\Utils\Helpers;
 use BadMethodCallException;
-use Tea\Regex\Contracts\Pattern;
+use Tea\Contracts\Regex\Pattern;
 use Gherkins\RegExpBuilderPHP\RegExpBuilder;
 use Tea\Regex\Exception\InvalidRegexPatternException;
 
@@ -36,8 +37,10 @@ class Builder extends RegExpBuilder implements Pattern
 		$this->delimiter = $delimiter && Config::validateDelimiter($delimiter)
 				? $delimiter : Config::delimiter();
 
-		$modifiers = is_null($modifiers) ? Config::modifiers() : $modifiers;
-		$this->modifier($modifiers);
+		if($modifiers === false)
+			$this->modifiers = false;
+		else
+			$this->modifier($modifiers);
 	}
 
 	/**
@@ -86,6 +89,20 @@ class Builder extends RegExpBuilder implements Pattern
 
 		return $this;
 	}
+
+	/**
+	 * Add the given modifiers to the regex.
+	 *
+	 * @see \Tea\Regex\Modifiers  For possible modifiers.
+	 *
+	 * @param string|iterable $modifiers
+	 * @return $this
+	 */
+	public function addModifiers($modifiers)
+	{
+		return $this->modifiers($modifiers);
+	}
+
 
 	/**
 	 * Remove the given modifier.

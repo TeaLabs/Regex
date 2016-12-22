@@ -1,5 +1,5 @@
 <?php
-namespace Tea\Regex;
+namespace Tea\Regex\Utils;
 
 use Closure;
 use ArrayAccess;
@@ -7,7 +7,6 @@ use InvalidArgumentException;
 
 class Helpers
 {
-
 	/**
 	 * Determine whether the mbstring module is loaded. If strict is false (the default),
 	 * checks whether a polyfill for mbstring exists.
@@ -41,8 +40,8 @@ class Helpers
 	{
 		return is_string($value)
 				|| is_null($value)
-				|| is_scalar($value)
-				|| (is_object($value) && method_exists($value, '__toString'));
+				|| (is_object($value) && method_exists($value, '__toString'))
+				|| is_scalar($value);
 	}
 
 	/**
@@ -128,6 +127,11 @@ class Helpers
 		}
 
 		return static::value($default);
+	}
+
+	public static function type($value)
+	{
+		return is_object($object) ? get_class($value) : gettype($value);
 	}
 }
 

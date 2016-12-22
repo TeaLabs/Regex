@@ -2,7 +2,7 @@
 namespace Tea\Regex\Exception;
 
 use Exception;
-use Tea\Regex\Helpers;
+use Tea\Regex\Utils\Helpers;
 use BadMethodCallException;
 
 class RegexError extends Exception

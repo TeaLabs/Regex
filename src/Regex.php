@@ -49,7 +49,10 @@ class Regex
 	 */
 	public static function create($body, $modifiers = null, $delimiter = null)
 	{
-		return RegularExpression::create($body, $modifiers, $delimiter);
+		if(is_array($body))
+			return RegularExpressionCollection::create($body, $modifiers, $delimiter);
+		else
+			return RegularExpression::create($body, $modifiers, $delimiter);
 	}
 
 	/**
@@ -74,6 +77,11 @@ class Regex
 	public static function from($pattern, $modifiers = null, $delimiter = null)
 	{
 		return RegularExpression::from($pattern, $modifiers, $delimiter);
+	}
+
+	public static function quote($value, $delimiter = null)
+	{
+		return Adapter::quote($value, $delimiter);
 	}
 
 	/**

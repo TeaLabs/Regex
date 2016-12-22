@@ -55,11 +55,6 @@ class Modifiers
 	/**
 	 * @var string
 	 */
-	const S              = 'S';
-
-	/**
-	 * @var string
-	 */
 	const UNGREEDY       = 'U';
 
 	/**

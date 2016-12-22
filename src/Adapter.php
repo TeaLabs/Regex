@@ -3,6 +3,7 @@ namespace Tea\Regex;
 
 use Closure;
 use Exception;
+use Tea\Regex\Utils\Helpers;
 use Tea\Regex\Result\Matches;
 use Tea\Regex\Result\Replacement;
 use Tea\Regex\Exception\SplitError;
@@ -50,28 +51,6 @@ class Adapter
 
 		return $result;
 	}
-
-	/**
-	 * Determine if the given string matches the given regex pattern.
-	 * Alias for Adapter::matches()
-	 *
-	 * @see  \Tea\Regex\Adapter::matches()
-	 * @todo Add support of PREG_* flags and how they affect the results' nature.
-	 *
-	 * @param string $pattern
-	 * @param string $subject
-	 * @param int $flags
-	 * @param int $offset
-	 *
-	 * @return bool
-	 *
-	 * @throws \Tea\Regex\Exception\MatchError
-	 */
-	public static function is($pattern, $subject, $flags =0, $offset = 0)
-	{
-		return static::match($pattern, $subject, $flags, $offset)->any();
-	}
-
 
 	/**
 	 * Perform a regular expression match on given subject.

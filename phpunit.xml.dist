@@ -4,7 +4,7 @@
          strict="true"
          colors="true"
          processIsolation="false"
-         stopOnFailure="false"
+         stopOnFailure="true"
          syntaxCheck="false">
     <testsuites>
         <testsuite name="modifiers">
@@ -24,6 +24,9 @@
         </testsuite>
         <testsuite name="regular-expression">
             <file>tests/RegularExpressionTest.php</file>
+        </testsuite>
+        <testsuite name="regular-expression-collection">
+            <file>tests/RegularExpressionCollectionTest.php</file>
         </testsuite>
         <testsuite name="regex">
             <file>tests/RegexTest.php</file>

@@ -1,6 +1,7 @@
 <?php
 namespace Tea\Regex;
 
+use Tea\Regex\Utils\Helpers;
 
 /**
  * Create a RegularExpression instance. If either the modifiers and/or the
@@ -16,5 +17,5 @@ namespace Tea\Regex;
  */
 function re($body, $modifiers = null, $delimiter = null)
 {
-	return RegularExpression::create($body, $modifiers, $delimiter);
+	return Regex::create($body, $modifiers, $delimiter);
 }

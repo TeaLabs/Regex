@@ -24,7 +24,7 @@
         "tea/contracts": "~0.1.0",
         "symfony/polyfill-iconv" : "~1.3.0",
         "symfony/polyfill-mbstring" : "~1.3.0",
-        "gherkins/regexpbuilderphp" : "0.*.*",
+        "gherkins/regexpbuilderphp" : "0.*.*"
     },
     "require-dev": {
         "phpunit/phpunit": "~5.0",
@@ -38,11 +38,12 @@
             "Tea\\Regex\\": "src/"
         },
         "files" : [
-            "src/helpers.php"
+            "src/functions.php"
         ]
     },
     "autoload-dev": {
         "psr-4": {
+            "Tea\\Contracts\\" : "../contracts/src/",
             "Tea\\Regex\\Tests\\": "tests/"
         }
     },

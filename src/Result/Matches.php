@@ -3,7 +3,7 @@ namespace Tea\Regex\Result;
 
 use Exception;
 use ArrayIterator;
-use Tea\Regex\Helpers;
+use Tea\Regex\Utils\Helpers;
 use Tea\Regex\Exception\GroupDoesNotExist;
 use Tea\Regex\Exception\InvalidGroupIndex;
 use Tea\Regex\Exception\NamedGroupDoesntExist;
