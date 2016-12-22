@@ -52,7 +52,7 @@ class Helpers
 	 */
 	public static function isNoneStringIterable($value)
 	{
-		return is_iterable($value) && !static::isStringable($value);
+		return is_array($value) || (is_iterable($value) && !static::isStringable($value));
 	}
 
 	public static function implodeIterable($iterable, $withKeys = false, $glue = null, $prefix = '[', $suffix = ']')
