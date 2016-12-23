@@ -138,9 +138,9 @@ class Adapter
 	 *
 	 * @uses preg_quote()
 	 *
-	 * @param  string            $value
-	 * @param  string|null|false $delimiter
-	 * @return string
+	 * @param  string|iterable     $value
+	 * @param  string|null|false   $delimiter
+	 * @return string|array
 	*/
 	public static function quote($value, $delimiter = null)
 	{
@@ -149,15 +149,14 @@ class Adapter
 
 		$delimiter = $delimiter === false ? null : ($delimiter ?: Config::delimiter());
 
-		if(Helpers::isNoneStringIterable($value)){
-			$results = [];
-			foreach ($value as $k => $v) {
-				$results[$k] = preg_quote( (string) $v, $delimiter);
-			}
-			return $results;
-		}
+		if(Helpers::isStringable($value))
+			return preg_quote( (string) $value, $delimiter);
 
-		return preg_quote( (string) $value, $delimiter);
+		$results = [];
+		foreach ($value as $k => $v) {
+			$results[$k] = preg_quote( (string) $v, $delimiter);
+		}
+		return $results;
 	}
 
 

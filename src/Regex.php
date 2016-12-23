@@ -79,6 +79,18 @@ class Regex
 		return RegularExpression::from($pattern, $modifiers, $delimiter);
 	}
 
+	/**
+	 * Quote (escape) regular expression characters and the delimiter in string.
+	 * If not passed, the default delimiter {@see Tea\Regex\Config::delimiter()}
+	 * will be quoted. FALSE can be passed as the delimiter to prevent any
+	 * delimiter including the default from being quoted.
+	 *
+	 * @uses \Tea\Regex\Adapter::quote()
+	 *
+	 * @param  string|iterable     $value
+	 * @param  string|null|false   $delimiter
+	 * @return string|array
+	*/
 	public static function quote($value, $delimiter = null)
 	{
 		return Adapter::quote($value, $delimiter);
