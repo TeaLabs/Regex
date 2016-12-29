@@ -74,17 +74,7 @@ class Helpers
 		if(is_array($iterable))
 			return $iterable;
 
-		if(!is_iterable($iterable)){
-			$type = is_object($iterable) ? get_class($iterable) : gettype($iterable);
-			throw new InvalidArgumentException("Iterable expected. {$type} given.");
-			return;
-		}
-
-		$results = [];
-		foreach ($iterable as $key => $value) {
-			$results[$key] = $value;
-		}
-		return $results;
+		return iterator_to_array($iterable);
 	}
 
 	public static function toArray($object)
