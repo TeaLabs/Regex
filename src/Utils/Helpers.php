@@ -3,6 +3,7 @@ namespace Tea\Regex\Utils;
 
 use Closure;
 use ArrayAccess;
+use Traversable;
 use InvalidArgumentException;
 
 class Helpers
@@ -71,21 +72,19 @@ class Helpers
 
 	public static function iterableToArray($iterable)
 	{
-		if(is_array($iterable))
-			return $iterable;
-
-		return iterator_to_array($iterable);
+		return is_array($iterable) ? $iterable : iterator_to_array($iterable);
 	}
 
 	public static function toArray($object)
 	{
-		if(is_array($object))
-			return $object;
-
-		if(static::isNoneStringIterable($object))
-			return static::iterableToArray($object);
-
-		return (array) $object;
+		if (!is_object($object))
+			return (array) $object;
+		elseif(method_exists($object, '__toString'))
+			return [$object];
+		elseif ($object instanceof Traversable)
+			return iterator_to_array($object);
+		else
+			return (array) $object;
 	}
 
 	public static function isArrayAccessible($object)
