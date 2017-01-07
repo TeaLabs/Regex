@@ -111,10 +111,10 @@ class Arr
     public static function exists($array, $key)
     {
         if ($array instanceof ArrayAccess) {
-            return $array->offsetExists($key);
+            return $array->offsetExists( (string) $key);
         }
 
-        return array_key_exists($key, $array);
+        return array_key_exists( (string) $key, $array);
     }
 
     /**
@@ -203,7 +203,7 @@ class Arr
         foreach ($keys as $key) {
             // if the exact key exists in the top-level, remove it
             if (static::exists($array, $key)) {
-                unset($array[$key]);
+                unset($array[(string) $key]);
 
                 continue;
             }
@@ -246,7 +246,7 @@ class Arr
         }
 
         if (static::exists($array, $key)) {
-            return $array[$key];
+            return $array[(string) $key];
         }
 
         foreach (explode('.', $key) as $segment) {
