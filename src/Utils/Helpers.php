@@ -8,6 +8,19 @@ use InvalidArgumentException;
 
 class Helpers
 {
+
+	/**
+	 * Check if the given flag is set in flags.
+	 *
+	 * @param int $flag
+	 * @param int $flags
+	 * @return bool
+	 */
+	public static function hasFlag($flag, $flags)
+	{
+		return ($flags & $flag) === $flag;
+	}
+
 	/**
 	 * Determine whether the mbstring module is loaded. If strict is false (the default),
 	 * checks whether a polyfill for mbstring exists.
