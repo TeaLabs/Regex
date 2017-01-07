@@ -18,7 +18,19 @@ class Helpers
 	 */
 	public static function hasFlag($flag, $flags)
 	{
-		return ($flags & $flag) === $flag;
+		return (((int) $flags) & ((int) $flag)) === ((int) $flag);
+	}
+
+	/**
+	 * Check if the given flag is set in flags.
+	 *
+	 * @param int $flag
+	 * @param int $flags
+	 * @return bool
+	 */
+	public static function removeFlag($flag, $flags)
+	{
+		return $flags & ~((int) $flag);
 	}
 
 	/**
