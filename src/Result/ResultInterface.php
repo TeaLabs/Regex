@@ -14,7 +14,7 @@ interface ResultInterface extends Countable, ArrayAccess, IteratorAggregate
 	 * @param  mixed $default
 	 * @return mixed
 	*/
-	public function get($key = null, $default = null);
+	public function get($key, $default = null);
 
 	/**
 	 * Determine if there was any result
