@@ -8,15 +8,12 @@ class MatchesTest extends TestCase
 
 	protected function match($pattern, $subject, $globalMatch = false, $flags = null, $offset = 0)
 	{
-		if(is_null($flags))
-			$flags = $globalMatch ? PREG_PATTERN_ORDER : 0;
-
 		if($globalMatch)
 			$result = preg_match_all($pattern, $subject, $matches, $flags, $offset);
 		else
 			$result = preg_match($pattern, $subject, $matches, $flags, $offset);
 
-		return new Matches($pattern, $subject, $matches, $result, $globalMatch);
+		return new Matches($pattern, $subject, $matches, $result, $globalMatch, $flags);
 	}
 
 	/**
@@ -332,83 +329,63 @@ class MatchesTest extends TestCase
 
 	public function groupsProvider()
 	{
-		$indexed = array_map(function($args){
+		$indexedGroups = array_map(function($args){
 			array_shift($args[0]);
 			return $args;
 		}, $this->indexedGroupsProvider());
 
-		$named = array_map(function($args){
-			$args[] = true;
-			return $args;
-		}, $this->namedGroupsProvider());
-
-		return array_merge($indexed, $named);
+		return $indexedGroups;
 	}
 
 	/**
 	 * @dataProvider groupsProvider()
 	 */
-	public function testGroups($expected, $pattern, $subject, $globalMatch = false, $namedGroups = false)
+	public function testGroups($expected, $pattern, $subject, $globalMatch = false)
 	{
 		$matches = $this->match($pattern, $subject, $globalMatch);
 		$this->assertIsMatches($matches);
-		$this->assertEquals($expected, $matches->groups($namedGroups));
+		$this->assertEquals($expected, $matches->groups());
 	}
 
 	public function getProvider()
 	{
 		return [
 			[
-				[
-					'555-1212',
-					'555-1212',
-				],
-				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
-				"Call 555-1212 or 1-800-555-1212",
-				false,
-				null,
-				null
-			],
-			[
 				'555-1212',
 				"/(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				false,
 				'phone'
 			],
 			[
 				['555-1212', '1-800-555-1212'],
 				"/(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				true,
 				'phone',
+				null,
+				true,
 			],
 			[
 				'Call 555-1212',
 				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				false,
 				0
 			],
 			[
 				'Call',
 				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				false,
 				1
 			],
 			[
 				null,
 				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				false,
 				'foo'
 			],
 			[
 				'bar',
 				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				false,
 				'foo',
 				'bar'
 			]
@@ -418,10 +395,9 @@ class MatchesTest extends TestCase
 	/**
 	 * @dataProvider getProvider()
 	 */
-	public function testGet($expected, $pattern, $subject, $globalMatch = false, $key = null, $default =null)
+	public function testGet($expected, $pattern, $subject, $key, $default =null, $globalMatch = false)
 	{
 		$matches = $this->match($pattern, $subject, $globalMatch);
-		$this->assertIsMatches($matches);
 		$this->assertEquals($expected, $matches->get($key, $default));
 	}
 
@@ -710,10 +686,31 @@ class MatchesTest extends TestCase
 				false,
 			],
 			[
+				2,
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+				PREG_OFFSET_CAPTURE
+			],
+			[
 				4,
 				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
 				true,
+			],
+			[
+				4,
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+				PREG_OFFSET_CAPTURE
+			],
+			[
+				6,
+				"/\s*((?:[a-zA-Z]+)\s?(?:[a-zA-Z]+))?\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212 or fax 1-800-444-7273",
+				true,
+				PREG_OFFSET_CAPTURE
 			],
 		];
 	}
@@ -721,9 +718,9 @@ class MatchesTest extends TestCase
 	/**
 	 * @dataProvider countProvider()
 	 */
-	public function testCount($expected, $pattern, $subject, $globalMatch = false)
+	public function testCount($expected, $pattern, $subject, $globalMatch = false, $flags = null, $offset=0)
 	{
-		$matches = $this->match($pattern, $subject, $globalMatch);
+		$matches = $this->match($pattern, $subject, $globalMatch, $flags, $offset);
 		$this->assertIsMatches($matches);
 		$actual = $matches->count();
 
