@@ -11,7 +11,7 @@ if(!function_exists('jsObject')):
 function jsObject($object, $flags = 0)
 {
 	$flags = is_array($object) || is_object($object) ? $flags|JSON_FORCE_OBJECT : $flags;
-	return str_replace("\n", "\n   ", jsFormat($object, $flags));
+	return str_replace("\n", "\n  ", jsFormat($object, $flags));
 }
 endif;
 
