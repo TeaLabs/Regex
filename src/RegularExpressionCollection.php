@@ -27,16 +27,9 @@ class RegularExpressionCollection extends RegularExpression implements ArrayAcce
 	 * @param  array  $expressions
 	 * @return void
 	 */
-	public function __construct(array $patterns = [], $modifiers = null, $delimiter = null)
+	public function __construct($patterns = [], $modifiers = null, $delimiter = null)
 	{
 		parent::__construct(null, $modifiers, $delimiter);
-
-		// if(!is_iterable($patterns)){
-		// 	$type = Helpers::type($patterns);
-		// 	throw new TypeError("RegularExpressionCollections can only"
-		// 		." be created from an iterable containing Tea\Regex\Contracts\Pattern objects."
-		// 		." {$type} given.");
-		// }
 
 		foreach ($patterns as $pattern)
 			$this[] = $pattern;

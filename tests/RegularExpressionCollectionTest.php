@@ -9,9 +9,9 @@ use Tea\Regex\Tests\Mocks\StringObject;
 
 class RegularExpressionCollectionTest extends TestCase
 {
-	protected function create($patterns)
+	protected function create($patterns = [], $modifiers = null, $delimiter = null)
 	{
-		return RegularExpressionCollection::create($patterns);
+		return RegularExpressionCollection::create($patterns, $modifiers, $delimiter);
 	}
 
 	protected function from($body, $modifiers =null, $delimiter = null)
@@ -51,19 +51,36 @@ class RegularExpressionCollectionTest extends TestCase
 		$this->assertInstanceOf('Tea\Regex\RegularExpression', $object);
 	}
 
-	public function createProvider()
+	public function testCreate()
 	{
-		return [
-			[[],[]]
-		];
-	}
+		$p1 = new RegularExpression('(?:^|(\s+))0(7\d{2})', 'x', '#');
+		$p2 = '(?:^|(\s+))0(7\d{2})';
+		$p3 = ['(?:^|(\s+))0(7\d{2})', 'i', '|'];
+		$re = $this->create([$p1, $p2, $p3], 's', '~');
 
-	/**
-	 * @dataProvider createProvider()
-	 */
-	public function testCreate($expected, $patterns)
-	{
-		$this->emptyTest(__METHOD__);
+		$this->assertIsRegularExpression($re[0]);
+		$this->assertEquals('#(?:^|(\s+))0(7\d{2})#x', $re[0]);
+
+		$this->assertIsRegularExpression($re[1]);
+		$this->assertEquals('~(?:^|(\s+))0(7\d{2})~s', $re[1]);
+
+		$this->assertIsRegularExpression($re[2]);
+		$this->assertEquals('|(?:^|(\s+))0(7\d{2})|i', $re[2]);
+
+		$re = $this->create([], 's', '~');
+		$re[] = $p1;
+		$re[] = $p2;
+		$re[] = $p3;
+
+		$this->assertIsRegularExpression($re[0]);
+		$this->assertEquals('#(?:^|(\s+))0(7\d{2})#x', $re[0]);
+
+		$this->assertIsRegularExpression($re[1]);
+		$this->assertEquals('~(?:^|(\s+))0(7\d{2})~s', $re[1]);
+
+		$this->assertIsRegularExpression($re[2]);
+		$this->assertEquals('|(?:^|(\s+))0(7\d{2})|i', $re[2]);
+
 	}
 
 	public function replaceProvider()

@@ -35,6 +35,6 @@ class Flags
 	/**
 	 * @var int
 	 */
-	const SPLIT_OFFSET_CAPTURE; = PREG_SPLIT_OFFSET_CAPTURE;
+	const SPLIT_OFFSET_CAPTURE = PREG_SPLIT_OFFSET_CAPTURE;
 
 }
