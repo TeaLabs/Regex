@@ -31,16 +31,15 @@ class Adapter
 	 *
 	 * @param  string  $pattern
 	 * @param  array   $input
-	 * @param  bool    $invert
+	 * @param  int     $flags
 	 *
 	 * @return array
 	 *
 	 * @throws \Tea\Regex\Exception\FilterError
 	*/
-	public static function filter($pattern, array $input, $invert = false)
+	public static function filter($pattern, array $input, $flags = 0)
 	{
 		try{
-			$flags = $invert ? PREG_GREP_INVERT : 0;
 			$result = preg_grep($pattern, $input, $flags);
 		}
 		catch (Exception $exception){

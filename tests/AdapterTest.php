@@ -1,6 +1,7 @@
 <?php
 namespace Tea\Regex\Tests;
 
+use Tea\Regex\Flags;
 use Tea\Regex\Regex;
 use Tea\Regex\Adapter;
 use Tea\Regex\Utils\Helpers;
@@ -27,7 +28,7 @@ class AdapterTest extends TestCase
 				explode(" ", "0722555121 0733446643 0700072245"),
 				"/^\+254\d{9}$/u",
 				explode(" ", "0722555121 +254701888020 0733446643 0700072245 +254711345543"),
-				true,
+				Flags::FILTER_INVERT,
 			],
 		];
 	}
@@ -35,9 +36,9 @@ class AdapterTest extends TestCase
 	/**
 	 * @dataProvider filterProvider()
 	 */
-	public function testFilter($expected, $pattern, $input, $invert = false)
+	public function testFilter($expected, $pattern, $input, $flags = 0)
 	{
-		$result = Adapter::filter($pattern, $input, $invert);
+		$result = Adapter::filter($pattern, $input, $flags);
 		$this->assertEquals($expected, array_values($result));
 	}
 
@@ -180,7 +181,7 @@ class AdapterTest extends TestCase
 				],
 				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				PREG_OFFSET_CAPTURE
+				Flags::OFFSET_CAPTURE
 			],
 			[
 				[
@@ -215,7 +216,7 @@ class AdapterTest extends TestCase
 				],
 				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				PREG_SET_ORDER
+				Flags::SET_ORDER
 			],
 
 		];
@@ -783,7 +784,7 @@ class AdapterTest extends TestCase
 				'/(?: |)/',
 				"foo bar",
 				-1,
-				PREG_SPLIT_NO_EMPTY
+				Flags::SPLIT_NO_EMPTY
 			],
 			[
 				["hypertext", "language, programming"],

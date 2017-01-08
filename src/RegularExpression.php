@@ -50,15 +50,15 @@ class RegularExpression implements Contract
 	 * @see   \Tea\Regex\Adapter::filter()
 	 *
 	 * @param  array   $input
-	 * @param  bool    $invert
+	 * @param  int     $flags
 	 *
 	 * @return array
 	 *
 	 * @throws \Tea\Regex\Exception\FilterError
 	*/
-	public function filter(array $input, $invert = false)
+	public function filter(array $input, $flags = 0)
 	{
-		return Adapter::filter($this->compile(), $input, $invert);
+		return Adapter::filter($this->compile(), $input, $flags);
 	}
 
 	/**
