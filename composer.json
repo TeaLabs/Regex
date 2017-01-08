@@ -1,8 +1,9 @@
 {
     "name": "tea/regex",
-    "description": "A PHP regular expression library.",
+    "description": "A clean interface for building and working with regular expressions.
+                Lightweight wrapper for the built in PCRE library (preg_* functions).",
     "keywords": [
-        "regex", "regular expression", "utf-8", "helpers", "utils", "utf", "unicode"
+        "regex", "expressions", "regular", "expressions", "preg", "PCRE", "utils", "tea"
     ],
     "license": "MIT",
     "homepage": "https://github.com/TeaLabs/regex",
@@ -22,9 +23,6 @@
         "ext-mbstring": "*",
         "tea/future": "~0.1.0",
         "tea/contracts": "~0.1.0",
-        "tea/exceptions": "~0.1.0",
-        "symfony/polyfill-iconv" : "~1.3.0",
-        "symfony/polyfill-mbstring" : "~1.3.0",
         "gherkins/regexpbuilderphp" : "0.*.*"
     },
     "require-dev": {
