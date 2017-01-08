@@ -25,6 +25,16 @@ class Flags
 	/**
 	 * @var int
 	 */
+	const GREP_INVERT = PREG_GREP_INVERT;
+
+	/**
+	 * @var int
+	 */
+	const FILTER_INVERT = PREG_GREP_INVERT;
+
+	/**
+	 * @var int
+	 */
 	const SPLIT_NO_EMPTY = PREG_SPLIT_NO_EMPTY;
 
 	/**
