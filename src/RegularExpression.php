@@ -107,7 +107,7 @@ class RegularExpression implements Contract
 	 * @param int $flags
 	 * @param int $offset
 	 *
-	 * @return \Tea\Regex\Result\Matches
+	 * @return \Tea\Regex\Result\MatchResult
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */

@@ -1,7 +1,9 @@
 <?php
 namespace Tea\Regex\Tests;
 
+use Tea\Regex\Regex;
 use Tea\Regex\Adapter;
+use Tea\Regex\Utils\Helpers;
 use Tea\Regex\Tests\Mocks\StringObject;
 
 class AdapterTest extends TestCase
@@ -173,6 +175,15 @@ class AdapterTest extends TestCase
 			],
 			[
 				[
+					[['555-1212', 5], ['1-800-555-1212', 17]],
+					[['555-1212', 5], ['1-800-555-1212', 17]],
+				],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				PREG_OFFSET_CAPTURE
+			],
+			[
+				[
 					['Call 555-1212', ' or 1-800-555-1212'],
 					['555-1212', '1-800-555-1212'],
 				],
@@ -197,6 +208,16 @@ class AdapterTest extends TestCase
 				StringObject::create("/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u"),
 				StringObject::create("Call 555-1212 or 1-800-555-1212"),
 			],
+			[
+				[
+					['Call 555-1212', 'Call', '555-1212'],
+					[' or 1-800-555-1212', 'or', '1-800-555-1212'],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				PREG_SET_ORDER
+			],
+
 		];
 	}
 
@@ -206,8 +227,8 @@ class AdapterTest extends TestCase
 	public function testMatchAll($expected, $pattern, $subject, $flags = 0, $offset = 0)
 	{
 		$matches = Adapter::matchAll($pattern, $subject, $flags, $offset);
-		$this->assertInstanceOfMatches($matches);
-		$this->assertEquals($expected, $matches->result());
+		$this->assertInstanceOfMatchResult($matches);
+		$this->assertEquals($expected, $matches->toArray());
 	}
 
 

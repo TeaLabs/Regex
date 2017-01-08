@@ -18,38 +18,6 @@ class RegularExpressionTest extends TestCase
 		return RegularExpression::from($body, $modifiers, $delimiter);
 	}
 
-	/**
-	 * Asserts that a variable is of a Matches instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertInstanceOfMatches($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\Result\Matches', $object);
-	}
-
-
-	/**
-	 * Asserts that a variable is of a Replacement instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertInstanceOfReplacement($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\Result\Replacement', $object);
-	}
-
-
-	/**
-	 * Asserts that a variable is of a RegularExpression instance.
-	 *
-	 * @param mixed $object
-	 */
-	public function assertIsRegularExpression($object)
-	{
-		$this->assertInstanceOf('Tea\Regex\RegularExpression', $object);
-	}
-
 	public function createProvider()
 	{
 		return [
@@ -362,6 +330,15 @@ class RegularExpressionTest extends TestCase
 			],
 			[
 				[
+					[['555-1212', 5], ['1-800-555-1212', 17]],
+					[['555-1212', 5], ['1-800-555-1212', 17]],
+				],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				PREG_OFFSET_CAPTURE
+			],
+			[
+				[
 					['Call 555-1212', ' or 1-800-555-1212'],
 					['555-1212', '1-800-555-1212'],
 				],
@@ -386,6 +363,15 @@ class RegularExpressionTest extends TestCase
 				StringObject::create("/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u"),
 				StringObject::create("Call 555-1212 or 1-800-555-1212"),
 			],
+			[
+				[
+					['Call 555-1212', 'Call', '555-1212'],
+					[' or 1-800-555-1212', 'or', '1-800-555-1212'],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				PREG_SET_ORDER
+			],
 		];
 	}
 
@@ -397,8 +383,8 @@ class RegularExpressionTest extends TestCase
 		$regex = $this->from($pattern);
 		$this->assertIsRegularExpression($regex);
 		$matches = $regex->matchAll($subject, $flags, $offset);
-		$this->assertInstanceOfMatches($matches);
-		$this->assertEquals($expected, $matches->result());
+		$this->assertInstanceOfMatchResult($matches);
+		$this->assertEquals($expected, $matches->toArray());
 	}
 
 

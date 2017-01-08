@@ -6,6 +6,7 @@ use Exception;
 use Tea\Regex\Utils\Helpers;
 use Tea\Regex\Result\Matches;
 use Tea\Regex\Result\Replacement;
+use Tea\Regex\Result\OrderedMatches;
 use Tea\Regex\Exception\SplitError;
 use Tea\Regex\Exception\MatchError;
 use Tea\Regex\Exception\FilterError;
@@ -78,7 +79,7 @@ class Adapter
 		if ($result === false)
 			throw MatchError::create($pattern, $subject, static::lastError());
 
-		return new Matches($pattern, $subject, $matches, $result);
+		return new Matches($pattern, $subject, $matches, $result, $flags, false);
 	}
 
 	/**
@@ -91,7 +92,7 @@ class Adapter
 	 * @param int $flags
 	 * @param int $offset
 	 *
-	 * @return \Tea\Regex\Result\Matches
+	 * @return \Tea\Regex\Result\MatchResult
 	 *
 	 * @throws \Tea\Regex\Exception\MatchError
 	 */
@@ -108,7 +109,10 @@ class Adapter
 			throw MatchError::create($pattern, $subject, static::lastError());
 		}
 
-		return new Matches($pattern, $subject, $matches, $result, true);
+		if(Helpers::hasFlag(Flags::SET_ORDER, $flags))
+			return new OrderedMatches($pattern, $subject, $matches, $result, $flags);
+		else
+			return new Matches($pattern, $subject, $matches, $result, $flags, true);
 	}
 
 	/**

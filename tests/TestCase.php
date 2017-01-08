@@ -41,6 +41,16 @@ abstract class TestCase extends BaseTestCase
 		$this->assertInstanceOf('Tea\Regex\Result\Matches', $object);
 	}
 
+	/**
+	 * Asserts that a variable is of a Matches instance.
+	 *
+	 * @param mixed $object
+	 */
+	public function assertInstanceOfMatchResult($object)
+	{
+		$this->assertInstanceOf('Tea\Regex\Result\MatchResult', $object);
+	}
+
 
 	/**
 	 * Asserts that a variable is of a Replacement instance.
