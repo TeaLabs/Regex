@@ -1,7 +1,9 @@
 <?php
 namespace Tea\Regex\Tests\Result;
 
+use Tea\Regex\Flags;
 use Tea\Regex\Result\Matches;
+use Tea\Regex\Tests\Mocks\StringObject;
 
 class MatchesTest extends TestCase
 {
@@ -13,7 +15,7 @@ class MatchesTest extends TestCase
 		else
 			$result = preg_match($pattern, $subject, $matches, $flags, $offset);
 
-		return new Matches($pattern, $subject, $matches, $result, $globalMatch, $flags);
+		return new Matches($pattern, $subject, $matches, $result, $flags, $globalMatch);
 	}
 
 	/**
@@ -162,6 +164,56 @@ class MatchesTest extends TestCase
 		$this->assertEquals($expected, $actual);
 	}
 
+
+	public function defaultProvider()
+	{
+		return [
+			[
+				[
+					'1-800-343-4534',
+					'Telephone',
+					'1-800-343-4534',
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				"Telephone",
+				false,
+			],
+			[
+				[
+					['1-800-343-4534', ' Call 555-1212', ' or 1-800-555-1212', ' 0-800-343-4534'],
+					[ null, 'Call', 'or', null],
+					['1-800-343-4534', '555-1212', '1-800-555-1212', '0-800-343-4534'],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				null,
+				true,
+			],
+			[
+				[
+					[['1-800-343-4534', 0], [' Call 555-1212', 14], [' or 1-800-555-1212', 28], [' 0-800-343-4534', 46]],
+					[ [null, 0], ['Call', 15], ['or', 29], [null, 47]],
+					[['1-800-343-4534', 0], ['555-1212', 20], ['1-800-555-1212', 32], ['0-800-343-4534', 47]],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				null,
+				true,
+				Flags::OFFSET_CAPTURE
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider defaultProvider()
+	 */
+	public function testDefault($expected, $pattern, $subject, $default, $globalMatch = false, $flags = null, $offset = 0)
+	{
+		$matches = $this->match($pattern, $subject, $globalMatch, $flags, $offset);
+		$matches->default($default);
+		$this->assertEquals($expected, $matches->all());
+	}
 
 
 	public function indexedGroupsProvider()
@@ -317,34 +369,194 @@ class MatchesTest extends TestCase
 		$this->assertEquals($expected, $matches->namedGroups());
 	}
 
-	/**
-	 * @dataProvider namedGroupsProvider()
-	 */
-	public function testNamed($expected, $pattern, $subject, $globalMatch = false)
+	public function namedProvider()
 	{
-		$matches = $this->match($pattern, $subject, $globalMatch);
-		$this->assertIsMatches($matches);
-		$this->assertEquals($expected, $matches->named());
+		return [
+			[
+				[],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					'phone' => '555-1212',
+				],
+				"/(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					'phone' => ['555-1212', '1-800-555-1212']
+				],
+				"/(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					'phone' => '555-1212',
+				],
+				"/\s*([a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					'phone' => ['555-1212', '1-800-555-1212']
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					'text' => 'Call',
+					'phone' => '555-1212',
+				],
+				"/\s*(?P<text>[a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					'phone' => ['555-1212', '1-800-555-1212'],
+					'end' => ['', '']
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})(?P<end>\.{0,1})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					'phone' => ['555-1212', '1-800-555-1212'],
+					'end' => ['', '.']
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})(?P<end>\.{0,1})/u",
+				"Call 555-1212 or 1-800-555-1212.",
+				true,
+			],
+			[
+				[
+					'text'  =>  $default = new StringObject('default'),
+					'phone' => '1-800-343-4534',
+				],
+				"/\s*(?P<text>[a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				false,
+				$default
+			],
+			[
+				[
+					'text' => [ ['foo', 0], ['Call', 15], ['or', 29], ['foo', 47]],
+					'phone' => [['1-800-343-4534', 0], ['555-1212', 20], ['1-800-555-1212', 32], ['0-800-343-4534', 47]],
+				],
+				"/\s*(?P<text>[a-zA-Z]*)\s*(?P<phone>\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				true,
+				'foo',
+				Flags::OFFSET_CAPTURE
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider namedProvider()
+	 */
+	public function testNamed($expected, $pattern, $subject, $globalMatch = false, $default = null, $flags = null, $offset = 0)
+	{
+		$matches = $this->match($pattern, $subject, $globalMatch, $flags, $offset);
+		$result = func_num_args() > 4 ? $matches->named($default) : $matches->named();
+		$this->assertEquals($expected, $result);
 	}
 
 	public function groupsProvider()
 	{
-		$indexedGroups = array_map(function($args){
-			array_shift($args[0]);
-			return $args;
-		}, $this->indexedGroupsProvider());
-
-		return $indexedGroups;
+		return [
+			[
+				[
+					'555-1212',
+				],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					['555-1212', '1-800-555-1212'],
+				],
+				"/(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					'555-1212',
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					['555-1212', '1-800-555-1212'],
+				],
+				"/\s*(?:[a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					'Call',
+					'555-1212',
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				false,
+			],
+			[
+				[
+					['Call', 'or'],
+					['555-1212', '1-800-555-1212'],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"Call 555-1212 or 1-800-555-1212",
+				true,
+			],
+			[
+				[
+					$default = new StringObject('empty'),
+					'1-800-343-4534'
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				false,
+				$default
+			],
+			[
+				[
+					[ ['foo', 0], ['Call', 15], ['or', 29], ['foo', 47]],
+					[['1-800-343-4534', 0], ['555-1212', 20], ['1-800-555-1212', 32], ['0-800-343-4534', 47]],
+				],
+				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
+				"1-800-343-4534 Call 555-1212 or 1-800-555-1212 0-800-343-4534",
+				true,
+				'foo',
+				Flags::OFFSET_CAPTURE
+			],
+		];
 	}
 
 	/**
 	 * @dataProvider groupsProvider()
 	 */
-	public function testGroups($expected, $pattern, $subject, $globalMatch = false)
+	public function testGroups($expected, $pattern, $subject, $globalMatch = false, $default = null, $flags = null, $offset = 0)
 	{
-		$matches = $this->match($pattern, $subject, $globalMatch);
+		$matches = $this->match($pattern, $subject, $globalMatch, $flags, $offset);
 		$this->assertIsMatches($matches);
-		$this->assertEquals($expected, $matches->groups());
+		$result = func_num_args() > 4 ? $matches->groups($default) : $matches->groups();
+		$this->assertEquals($expected, $result);
 	}
 
 	public function getProvider()

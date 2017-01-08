@@ -3,6 +3,7 @@ namespace Tea\Regex\Result;
 
 use Exception;
 use ArrayIterator;
+use Tea\Regex\Flags;
 use Tea\Regex\Utils\Helpers;
 use Tea\Exceptions\KeyError;
 use Tea\Exceptions\PropertyError;
@@ -14,7 +15,7 @@ use Tea\Regex\Exception\NamedGroupDoesntExist;
  *
  * @todo Add support of PREG_* flags and how they affect the results' nature.
 */
-class OrderedMatches extends Matches
+class OrderedMatches extends MatchResult
 {
 
 	/**
@@ -29,79 +30,56 @@ class OrderedMatches extends Matches
 	 */
 	public function __construct($pattern, $subject, array $matches, $hasMatch, $flags = null)
 	{
-		$flags = Helpers::removeFlag(PREG_SET_ORDER, $flags);
-
 		foreach ($matches as $key => $match)
-			$matches[$key] = new Matches($pattern, $subject, $match, true, false, $flags);
+			$matches[$key] = new Matches($pattern, $subject, $match, $hasMatch, $flags, false);
 
-		parent::__construct($pattern, $subject, $matches, $hasMatch, false, $flags);
+		parent::__construct($pattern, $subject, $matches, $hasMatch, $flags, false);
 	}
 
 	/**
-	 * Get one or more groups of the match.
+	 * Set the default value for match groups that came empty.
 	 *
-	 * @param int|string ...$groups
+	 * @param  $default
 	 *
-	 * @return string|array
-	 *
-	 * @throws Tea\Regex\Exception\GroupDoesNotExist
-	 * @throws Tea\Regex\Exception\InvalidGroupIndex
+	 * @return $this
 	 */
-	public function group($groups)
+	public function default($default)
 	{
-		if(func_num_args() === 1)
-			return $this->get($groups, null, true);
+		foreach ($this->allGroups as $match)
+			$match->default($default);
 
-		$results = [];
-		foreach (func_get_args() as $group)
-			$results[ (string) $group] = $this->get($group, null, true);
-
-		return $results;
+		return $this;
 	}
 
 	/**
 	 * Get all values that matched the captured parenthesized sub-patterns,
 	 * from 1 up to however many groups are in the pattern.
-	 * If namedGroups is passed as TRUE, named groups are returned instead.
 	 *
-	 * @param bool $namedGroups
+	 * @param  mixed $default
 	 * @return array
 	 */
-	public function groups()
+	public function groups($default = null)
 	{
 		$groups = [];
+		$nargs = func_num_args();
 		foreach ($this->allGroups as $key => $match)
-			$groups[$key] = $match->groups();
+			$groups[$key] = $nargs ? $match->groups($default) : $match->groups();
 
 		return $groups;
 	}
 
 	/**
-	 * Determine if the given group exists.
-	 *
-	 * @param  string  $key
-	 * @return bool
-	 *
-	 * @throws Tea\Regex\Exception\InvalidGroupIndex
-	 */
-	public function has($key)
-	{
-		if(!Helpers::isStringable($key) || ((string)(int)(string) $key) != ((string) $key))
-			throw InvalidGroupIndex::create($this->pattern, $this->subject, $key, "Expected an Integer.");
-
-		return array_key_exists((string) $key, $this->allGroups);
-	}
-
-	/**
 	 * Get all named groups that were captured in the match.
 	 *
+	 * @param  mixed $default
 	 * @return array
 	 */
-	public function named()
+	public function named($default = null)
 	{
 		$groups = [];
+		$nargs = func_num_args();
 		foreach ($this->allGroups as $key => $match)
-			$groups[$key] = $match->named();
+			$groups[$key] = $nargs ? $match->named($default) : $match->named();
 
 		return $groups;
 	}
@@ -137,10 +115,14 @@ class OrderedMatches extends Matches
 	/**
 	 * Count the number of found matches.
 	 *
+	 * @param  bool  $all
 	 * @return int
 	 */
-	public function count()
+	public function count($all = false)
 	{
+		if(!$all)
+			return count($this->allGroups);
+
 		$count = 0;
 		foreach ($this->allGroups as $match)
 			$count += $match->count();
@@ -149,25 +131,28 @@ class OrderedMatches extends Matches
 	}
 
 	/**
-	 * Magic method for getting named groups as class properties.
+	 * Get an iterator for the matched groups, from 1 up to however many groups
+	 * are in the pattern.
 	 *
-	 * @param  string  $key
-	 * @return string|array
-	 *
-	 * @throws Tea\Regex\Exception\NamedGroupDoesntExist
+	 * @return \ArrayIterator
 	 */
-	public function __get($key)
+	public function getIterator()
 	{
-		throw PropertyError::accessNotAllowed($key, $this);
+		return new ArrayIterator($this->allGroups);
 	}
 
 	/**
-	 * Determine if the match results were ordered using the PREG_SET_ORDER flag.
+	 * Convert the match object to an array.
 	 *
-	 * @return boolean
+	 * @return array
 	 */
-	public function isSetOrder()
+	public function toArray()
 	{
-		return true;
+		$results = [];
+		foreach ($this->allGroups as $key => $match)
+			$results[$key] = $match->toArray();
+
+		return $results;
 	}
+
 }

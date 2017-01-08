@@ -12,27 +12,8 @@ use Tea\Regex\Exception\NamedGroupDoesntExist;
  *
  * @todo Add support of PREG_* flags and how they affect the results' nature.
 */
-class Matches extends Result
+class Matches extends MatchResult
 {
-	/**
-	 * @var bool
-	 */
-	protected $hasMatch;
-
-	/**
-	 * @var bool
-	 */
-	protected $isGloabalMatch;
-
-	/**
-	 * @var int
-	 */
-	protected $flags;
-
-	/**
-	 * @var array
-	 */
-	protected $allGroups;
 
 	/**
 	 * @var array
@@ -48,46 +29,6 @@ class Matches extends Result
 	 * @var int
 	 */
 	protected $count;
-
-	/**
-	 * Instantiate the Matches object.
-	 *
-	 * @param string|array  $pattern
-	 * @param string|array  $subject
-	 * @param array         $matches
-	 * @param bool          $hasMatch
-	 * @param bool          $isGloabalMatch
-	 * @param int           $flags
-	 * @return void
-	 */
-	public function __construct($pattern, $subject, array $matches, $hasMatch, $isGloabalMatch = false, $flags = null)
-	{
-		parent::__construct($pattern, $subject);
-		$this->allGroups = $matches;
-		$this->hasMatch = (bool) $hasMatch;
-		$this->isGloabalMatch = (bool) $isGloabalMatch;
-		$this->flags = (int) $flags;
-	}
-
-	/**
-	 * Get an array of all captured groups, both named and indexed.
-	 *
-	 * @return array
-	 */
-	public function all()
-	{
-		return $this->allGroups;
-	}
-
-	/**
-	 * Determine if there was any match.
-	 *
-	 * @return bool
-	 */
-	public function any()
-	{
-		return $this->hasMatch;
-	}
 
 	/**
 	 * Set the default value for match groups that came empty.
@@ -106,49 +47,6 @@ class Matches extends Result
 		$this->parseGroups();
 
 		return $this;
-	}
-
-	/**
-	 * Determine if there was any match.
-	 *
-	 * @return bool
-	 */
-	public function hasMatch()
-	{
-		return $this->hasMatch;
-	}
-
-	/**
-	 * @return string|null
-	 */
-	public function result()
-	{
-		return $this->all();
-	}
-
-	/**
-	 * Get one or more subgroups of the match or all groups if none is specified.
-	 *
-	 * @uses   \Tea\Regex\Result\Matches::has()
-	 *
-	 * @param int|string  $key
-	 * @param mixed       $default
-	 * @param bool        $orError
-	 *
-	 * @return string|array
-	 *
-	 * @throws \Tea\Regex\Exception\InvalidGroupIndex
-	 * @throws \Tea\Regex\Exception\GroupDoesNotExist If $orError is TRUE.
-	 */
-	public function get($key, $default = null, $orError = false)
-	{
-		if($this->has($key))
-			return $this->allGroups[(string) $key];
-
-		if($orError)
-			throw GroupDoesNotExist::create($this->pattern, $this->subject, $key);
-
-		return Helpers::value($default);
 	}
 
 	/**
@@ -176,14 +74,21 @@ class Matches extends Result
 	/**
 	 * Get all values that matched the captured parenthesized sub-patterns,
 	 * from 1 up to however many groups are in the pattern.
-	 * If namedGroups is passed as TRUE, named groups are returned instead.
 	 *
-	 * @param bool $namedGroups
+	 * @param  mixed $default
 	 * @return array
 	 */
-	public function groups()
+	public function groups($default = null)
 	{
-		return array_slice($this->indexedGroups(), 1);
+		$groups = array_slice($this->indexedGroups(), 1);
+
+		if(func_num_args() === 0)
+			return $groups;
+
+		if($this->isGloabalMatch)
+			return $this->replaceEmptyArray($groups, $default);
+		else
+			return $this->replaceEmpty($groups, $default);
 	}
 
 	/**
@@ -202,11 +107,20 @@ class Matches extends Result
 	/**
 	 * Get all named groups that were captured in the match.
 	 *
+	 * @param  mixed $default
 	 * @return array
 	 */
-	public function named()
+	public function named($default = null)
 	{
-		return $this->namedGroups();
+		$groups = $this->namedGroups();
+
+		if(func_num_args() === 0)
+			return $groups;
+
+		if($this->isGloabalMatch)
+			return $this->replaceEmptyArray($groups, $default);
+		else
+			return $this->replaceEmpty($groups, $default);
 	}
 
 	/**
@@ -220,6 +134,16 @@ class Matches extends Result
 			$this->parseGroups();
 
 		return $this->namedGroups;
+	}
+
+	/**
+	 * Convert the matches object to an array.
+	 *
+	 * @return array
+	 */
+	public function toArray()
+	{
+		return $this->allGroups;
 	}
 
 	/**
@@ -259,44 +183,6 @@ class Matches extends Result
 	}
 
 	/**
-	 * Determine if the given group exists.
-	 *
-	 * @param  string  $key
-	 * @return bool
-	 *
-	 * @throws Tea\Regex\Exception\InvalidGroupIndex
-	 */
-	public function has($key)
-	{
-		if(!Helpers::isStringable($key))
-			throw InvalidGroupIndex::create($this->pattern, $this->subject, $key);
-
-		return array_key_exists((string) $key, $this->allGroups);
-	}
-
-	/**
-	 * Determine if the given group exists.
-	 *
-	 * @param  string|int  $key
-	 * @return bool
-	 */
-	public function offsetExists($key)
-	{
-		return $this->has($key);
-	}
-
-	/**
-	 * Get an item's value.
-	 *
-	 * @param  string|int  $key
-	 * @return mixed
-	 */
-	public function offsetGet($key)
-	{
-		return $this->get($key, null, true);
-	}
-
-	/**
 	 * Magic method for getting named groups as class properties.
 	 *
 	 * @param  string  $key
@@ -313,36 +199,6 @@ class Matches extends Result
 			throw InvalidGroupIndex::create($this->pattern, $this->subject, $key);
 		else
 			throw NamedGroupDoesntExist::create($this->pattern, $this->subject, $key);
-	}
-
-	/**
-	 * Determine if the match results offesets were captured by using the PREG_OFFSET_CAPTURE flag.
-	 *
-	 * @return boolean
-	 */
-	public function offsetCaptured()
-	{
-		return Helpers::hasFlag(PREG_OFFSET_CAPTURE, $this->flags);
-	}
-
-	/**
-	 * Determine if the match results were ordered using the PREG_SET_ORDER flag.
-	 *
-	 * @return boolean
-	 */
-	public function isSetOrder()
-	{
-		return Helpers::hasFlag(PREG_SET_ORDER, $this->flags);
-	}
-
-	/**
-	 * Determine if the match results were ordered using the PREG_PATTERN_ORDER flag.
-	 *
-	 * @return boolean
-	 */
-	public function isPatternOrder()
-	{
-		return ! $this->isSetOrder();
 	}
 
 	/**
@@ -373,11 +229,10 @@ class Matches extends Result
 	protected function replaceEmpty(array $groups, $default)
 	{
 		foreach ($groups as &$value) {
-			if($this->offsetCaptured() && is_array($value))
-				if($value[0] == "")
-					$value[0] = $default;
-			elseif($value == "")
-				$value = $default;
+			if(!$this->offsetCaptured())
+				$value = $value == "" ? Helpers::value($default) : $value;
+			elseif(is_array($value))
+				$value[0] = $value[0] == "" ? Helpers::value($default) : $value[0];
 		}
 
 		return $groups;
