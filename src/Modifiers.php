@@ -123,13 +123,8 @@ class Modifiers
 	*/
 	public static function toAscii($modifiers)
 	{
-		if(mb_check_encoding($modifiers, 'ASCII'))
+		if(function_exists('mb_check_encoding') && mb_check_encoding($modifiers, 'ASCII'))
 			return $modifiers;
-
-		// foreach (static::compiledAsciiMap() as $key => $value) {
-		// 	$modifiers = preg_replace($value, $key, $modifiers);
-		// }
-		// return $modifiers;
 
 		$map = static::compiledAsciiMap();
 		return preg_replace($map['search'], $map['replace'], $modifiers);
@@ -139,9 +134,7 @@ class Modifiers
 	{
 		if(is_null(static::$asciiMapCompiled)){
 			static::$asciiMapCompiled = ['search' => [], 'replace' => []];
-			// static::$asciiMapCompiled = [];
 			foreach (static::$asciiMap as $ascii => $values) {
-				// static::$asciiMapCompiled[$ascii] = '/['.join('', $values).']+/u';
 				static::$asciiMapCompiled['search'][] = '/['.join('', $values).']+/u';
 				static::$asciiMapCompiled['replace'][] = $ascii;
 			}

@@ -34,27 +34,6 @@ class Helpers
 	}
 
 	/**
-	 * Determine whether the mbstring module is loaded. If strict is false (the default),
-	 * checks whether a polyfill for mbstring exists.
-	 *
-	 * @param  bool   $strict
-	 * @return bool
-	 */
-	public static function mbstringLoaded($strict = false)
-	{
-		static $extension, $polyfill;
-
-		if(is_null($extension))
-			$extension = extension_loaded('mbstring');
-
-		if(is_null($polyfill))
-			$polyfill = function_exists('mb_strlen');
-
-		return ($extension || (!$strict && $polyfill));
-	}
-
-
-	/**
 	 * Determine whether a value can be casted to string. Returns true if value is a
 	 * scalar (String, Integer, Float, Boolean etc.), null or if it's an object that
 	 * implements the __toString() method. Otherwise, returns false.
