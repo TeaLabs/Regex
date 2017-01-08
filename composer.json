@@ -1,7 +1,6 @@
 {
     "name": "tea/regex",
-    "description": "A clean interface for building and working with regular expressions.
-                Lightweight wrapper for the built in PCRE library (preg_* functions).",
+    "description": "A clean interface for building and working with regular expressions. Lightweight wrapper for the built in PCRE library (preg_* functions).",
     "keywords": [
         "regex", "expressions", "regular", "expressions", "preg", "PCRE", "utils", "tea"
     ],
