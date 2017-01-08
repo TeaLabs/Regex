@@ -5,8 +5,6 @@ use Exception;
 use ArrayIterator;
 use Tea\Regex\Flags;
 use Tea\Regex\Utils\Helpers;
-use Tea\Exceptions\KeyError;
-use Tea\Exceptions\PropertyError;
 use Tea\Regex\Exception\GroupDoesNotExist;
 use Tea\Regex\Exception\InvalidGroupIndex;
 use Tea\Regex\Exception\NamedGroupDoesntExist;
