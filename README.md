@@ -1,8 +1,23 @@
 # Regex
 
+## Available Components
+
+#### The `RegularExpression` object.
+
+Represents a regex pattern and provides the various regex functions. Ie: `match()`, `replace()`, `split()` e.t.c.
+
+#### The `Builder`.
+
+Provides a human-readable API for building regular expressions. Integrates regular expressions into the programming language, thereby making them easy to read and maintain. Regular Expressions are created by using chained methods.
+
+#### The `Regex` static facade.
+
+
+
 ## Quick Start
 
 #### The RegularExpression Instance.
+
 
 Creating an instance.
 
