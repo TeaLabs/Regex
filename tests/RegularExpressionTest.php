@@ -371,7 +371,7 @@ class RegularExpressionTest extends TestCase
 				],
 				"/\s*([a-zA-Z]*)\s*(\d{0,1}\-{0,1}(?:\d\d\d\-){1,2}\d{4})/u",
 				"Call 555-1212 or 1-800-555-1212",
-				Flags::OFFSET_CAPTURE
+				Flags::SET_ORDER
 			],
 		];
 	}
