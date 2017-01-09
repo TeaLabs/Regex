@@ -10,7 +10,7 @@ To build and work with regular expressions, `tea\regex` provides a couple of fle
  - The `Builder` which provides a human-readable API for building regular expressions.
  - The `Regex` static facade which provides a static interface for the `RegularExpression` object.
 
-#### Getting Started.
+### Getting Started.
 
 To perform regex functions such as `match`, `replace`, `split`, we need to create a `RegularExpression` instance. There are various ways to do this.
 
@@ -42,4 +42,45 @@ To set the delimiter and modifiers to be used:
 
 	// Compiles to '/-/'
 	$regex = re('-', '', '/');
+
+Creating with complete regex patterns.
+
+	$regex = RegularExpression::from('/^\d+/u');
+	Regex::from(...);
+	Regex::match(...);
+	Regex::replace(...);
+
+
+### `Match`
+
+...
+
+### `MatchAll`
+
+...
+
+### `replace`
+
+...
+
+### `replaceCallback`
+
+...
+
+### `filter`
+
+...
+
+### `matches`
+
+...
+
+### `replaced`
+
+...
+
+### `split`
+
+...
+
 
