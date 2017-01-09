@@ -21,15 +21,12 @@ To perform regex functions such as `match`, `replace`, `split` etc, we need to c
 	// 1. Creating directly.
 	$regex = new RegularExpression('^\d+-([A-Za-z]+)-([A-Za-z]+)');
 	$matches = $regex->match('254-foo-bar-baz'); // 'Tea\Regex\Result\Matches' object
-	$matches->any(); // true
-	$matches->all(); // ['254-foo-bar', 'foo', 'bar']
-	$matches->group(1); // 'foo'
-	$matches->groups(); // ['foo', 'bar']
 
 	// 2. Using the Regex static facade.
-	$regex = Regex::create('^[A-Za-z]+');
-	$replaced = $regex->replace('STARTING_ALPHABETS', 'foo-bar');
+	$regex = Regex::create('^\d+'); // 'Tea\Regex\RegularExpression' object
+	$replaced = $regex->replace('x', '254-foo-bar-baz'); // 'Tea\Regex\Result\Replacement' object
 
 	// 3. Using the re() function.
-	$regex = re('^[A-Za-z]+');
-	$exploded = $regex->split();
+	$regex = re('-'); // 'Tea\Regex\RegularExpression' object
+	$result = $regex->split('254-foo-bar-baz'); // array('254', 'foo', 'bar', 'baz')
+
