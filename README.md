@@ -12,7 +12,7 @@ To build and work with regular expressions, `tea\regex` provides a couple of fle
 
 #### Getting Started.
 
-To perform regex functions such as `match`, `replace`, `split` etc, we need to create a `RegularExpression` instance. There are various ways to do this.
+To perform regex functions such as `match`, `replace`, `split`, we need to create a `RegularExpression` instance. There are various ways to do this.
 
 	use Tea\Regex\Regex;
 	use function Tea\Regex\re;
@@ -29,4 +29,17 @@ To perform regex functions such as `match`, `replace`, `split` etc, we need to c
 	// 3. Using the re() function.
 	$regex = re('-'); // 'Tea\Regex\RegularExpression' object
 	$result = $regex->split('254-foo-bar-baz'); // array('254', 'foo', 'bar', 'baz')
+
+Notice that the delimiters and modifiers are missing from the regex patterns used above? Yes. The methods above will throw an error if you provide a pattern with the delimiters and/or any modifiers set. In the examples above, `/` is be used as the delimiter and the `u` modifiers is set. `/` delimiter and `u` modifier are the default.
+
+To set the delimiter and modifiers to be used:
+
+	// Compiles to '#^ \d+ - ([A-Za-z]+) - ([A-Za-z]+)#ix'
+	$regex = new RegularExpression('^ \d+ - ([A-Za-z]+) - ([A-Za-z]+)', 'ix', '#');
+
+	// Compiles to '|^\d+|u'
+	$regex = Regex::create('^\d+', null, '|');
+
+	// Compiles to '/-/'
+	$regex = re('-', '', '/');
 
